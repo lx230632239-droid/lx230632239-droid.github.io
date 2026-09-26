@@ -1,227 +1,94 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>今天吃什么 · 美食随机选择器</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1d1411"><title>今天吃什么 · 美食决策转盘</title>
 <style>
-:root{--bg:#fff8f4;--card:#fff;--ink:#241b18;--muted:#8e7b74;--line:#eee0da;--red:#ff5b55;--orange:#ff9a62;--shadow:0 18px 55px rgba(71,38,24,.11)}
-*{box-sizing:border-box}body{margin:0;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:radial-gradient(circle at 5% 0,#ffe2d1 0,transparent 34%),radial-gradient(circle at 100% 15%,#ffe8b9 0,transparent 28%),var(--bg)}
-button,select{font:inherit}.wrap{max-width:1060px;margin:auto;padding:22px 16px 44px}header{text-align:center;padding:8px 0 18px}.badge{display:inline-block;padding:7px 12px;border:1px solid var(--line);background:#fff;border-radius:999px;color:#df514c;font-size:12px;font-weight:800}.sub{color:var(--muted);font-size:14px}h1{font-size:clamp(36px,7vw,58px);line-height:1;margin:14px 0 8px;letter-spacing:-.06em}
-.grid{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}.card{background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:28px;box-shadow:var(--shadow);backdrop-filter:blur(12px)}.main{padding:20px}.controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:15px}select,.toggle{height:42px;border:1px solid var(--line);border-radius:13px;background:#fff;padding:0 13px;color:var(--ink);font-size:14px}.toggle{display:flex;align-items:center;gap:8px;cursor:pointer}.toggle input{accent-color:var(--red)}
-.hero{position:relative;overflow:hidden;border-radius:24px;height:390px;background:#f5e7df}.hero img{width:100%;height:100%;display:block;object-fit:cover;transition:transform .5s}.hero:after{content:"";position:absolute;inset:40% 0 0;background:linear-gradient(transparent,rgba(24,13,9,.76))}.heroText{position:absolute;z-index:2;left:22px;right:22px;bottom:18px;color:#fff}.tag{display:inline-block;padding:5px 9px;border-radius:999px;background:rgba(255,255,255,.18);backdrop-filter:blur(8px);font-size:11px}.heroText h2{font-size:30px;margin:8px 0 2px}.heroText p{margin:0;opacity:.9;font-size:13px}
-.spin{width:100%;border:0;margin-top:15px;padding:16px;border-radius:17px;background:linear-gradient(135deg,var(--red),var(--orange));color:#fff;font-size:19px;font-weight:900;letter-spacing:.08em;cursor:pointer;box-shadow:0 12px 28px rgba(255,91,85,.25)}.spin:disabled{opacity:.65}
-.result{display:none;margin-top:15px;padding:16px;border:1px solid #f1ddd5;border-radius:22px;background:#fff}.result.show{display:grid;grid-template-columns:110px 1fr;gap:15px;align-items:center}.result img{width:110px;height:110px;border-radius:18px;object-fit:cover}.result .eyebrow{font-size:11px;color:#d85a50;font-weight:800}.result h2{margin:3px 0;font-size:27px}.result p{margin:0;color:var(--muted);font-size:13px;line-height:1.6}.again{margin-top:10px;border:1px solid var(--line);background:#fff;border-radius:12px;padding:9px 12px;cursor:pointer}
-.side{padding:20px}.side h3{margin:0 0 12px;font-size:17px}.quick{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:18px}.quick button{border:1px solid var(--line);background:#fff;border-radius:14px;padding:11px 8px;cursor:pointer;font-weight:700;color:#51423d}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}.stat{padding:12px 5px;text-align:center;border-radius:15px;background:#fff5ef}.stat b{font-size:20px}.stat span{display:block;color:var(--muted);font-size:10px;margin-top:3px}.history{max-height:260px;overflow:auto;display:flex;flex-direction:column;gap:7px}.item{display:flex;align-items:center;gap:9px;padding:9px;border:1px solid #f1e6e1;border-radius:13px;background:#fff;font-size:13px}.item img{width:38px;height:38px;border-radius:10px;object-fit:cover}.item small{margin-left:auto;color:#aaa}.actions{display:flex;gap:8px;margin-top:10px}.ghost{flex:1;border:1px solid var(--line);background:#fff;padding:10px;border-radius:13px;cursor:pointer}.tip{margin-top:15px;padding:13px;border-radius:16px;background:linear-gradient(135deg,#fff2eb,#fff9e9);color:#715e56;font-size:12px;line-height:1.7}
-.loading{position:fixed;inset:0;background:rgba(255,250,247,.82);backdrop-filter:blur(8px);display:none;z-index:30;align-items:center;justify-content:center}.loading.on{display:flex}.loader{background:#fff;border:1px solid var(--line);border-radius:24px;padding:25px 32px;text-align:center;box-shadow:var(--shadow)}.loader .emoji{font-size:48px;animation:bounce .65s infinite alternate}.loader b{display:block;margin-top:8px}.loader span{display:block;color:var(--muted);font-size:12px;margin-top:4px}@keyframes bounce{to{transform:translateY(-10px) rotate(8deg)}}footer{text-align:center;color:#aa968e;font-size:10px;margin-top:15px}
-@media(max-width:780px){.grid{grid-template-columns:1fr}.hero{height:320px}.result.show{grid-template-columns:88px 1fr}.result img{width:88px;height:88px}.top h1{font-size:44px}}
+*{box-sizing:border-box}body{margin:0;color:#2b211d;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:radial-gradient(circle at 50% 0,#ffd9c4,#fff5ef 38%,#f7f0ff 100%);min-height:100vh}
+.wrap{max-width:900px;margin:auto;padding:18px 15px 45px}.top{display:flex;justify-content:space-between;align-items:center}.brand{font-weight:950;font-size:21px}.brand small{display:block;color:#a28e84;font-size:10px;margin-top:3px}.music{border:1px solid #ead9d0;background:#fff;border-radius:99px;padding:9px 12px;cursor:pointer}
+header{text-align:center;padding:18px 0 10px}h1{font-size:clamp(36px,8vw,58px);margin:4px 0 7px;letter-spacing:-.06em}.sub{color:#897a73;font-size:14px}
+.card{background:#ffffffd9;border:1px solid #fff;border-radius:28px;box-shadow:0 20px 60px #75452b18;backdrop-filter:blur(14px);padding:18px;margin-top:14px}
+.choices{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.choice label{display:block;font-size:11px;color:#9b8b83;margin-bottom:6px;font-weight:800}.choice select{width:100%;height:44px;border:1px solid #e9ddd7;border-radius:13px;background:#fff;padding:0 10px;color:#352a25}
+.tastes{display:flex;gap:8px;overflow:auto;padding:13px 0 2px}.taste{white-space:nowrap;border:1px solid #eadfd9;background:#fff;border-radius:99px;padding:9px 13px;cursor:pointer;color:#665851;font-size:12px}.taste.on{background:#28201c;color:#fff;border-color:#28201c}
+.stage{position:relative;width:min(88vw,620px);aspect-ratio:1;margin:20px auto 10px;display:grid;place-items:center}.glow{position:absolute;inset:4%;border-radius:50%;background:#ffad6a55;filter:blur(30px)}
+.shell{position:relative;width:94%;height:94%;border-radius:50%;padding:13px;background:linear-gradient(145deg,#fbe6a9,#9d682d 28%,#302015 52%,#d4a35e 78%,#70461f);box-shadow:0 26px 55px #2e160d55,0 0 0 3px #f8dfa255,0 0 0 8px #3a2519,inset 0 2px 7px #fff9}
+canvas{width:100%;height:100%;display:block;border-radius:50%}.pointer{position:absolute;z-index:6;top:-3px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:18px solid transparent;border-right:18px solid transparent;border-top:42px solid #f04d3e;filter:drop-shadow(0 5px 4px #0008)}.pointer:after{content:"";position:absolute;left:-8px;top:-39px;width:16px;height:9px;border-radius:8px;background:#fff}
+.center{position:absolute;z-index:5;width:80px;height:80px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 25%,#fff4c4,#e2ad55 42%,#71461e 75%);border:4px solid #f8dfa0;box-shadow:0 5px 16px #0008,inset 0 2px 6px #fff9;font-size:29px}
+.spin{width:100%;border:0;border-radius:17px;padding:17px;background:linear-gradient(135deg,#ff7450,#ed4e6b);color:#fff;font-size:19px;font-weight:950;box-shadow:0 14px 30px #ed624033;cursor:pointer}.spin:disabled{opacity:.6}
+.result{display:none;margin-top:16px;background:#fff;border-radius:23px;padding:18px;text-align:center;box-shadow:0 15px 45px #69462a20}.result.show{display:block;animation:pop .45s ease}@keyframes pop{from{opacity:0;transform:scale(.94) translateY(12px)}to{opacity:1;transform:none}}.resultArt{width:min(100%,560px);aspect-ratio:1.65;margin:auto;border-radius:19px;overflow:hidden}.resultArt img{width:100%;height:100%;object-fit:cover}.result h2{font-size:31px;margin:12px 0 3px}.meta{color:#c66447;font-size:12px;font-weight:900}.reason{color:#81736c;font-size:13px;margin:8px 0 13px}.again{border:0;border-radius:13px;padding:13px 19px;background:#27201c;color:#fff;font-weight:900;cursor:pointer}
+.manage{display:grid;grid-template-columns:1fr auto;gap:9px}.manage input{min-width:0;border:1px solid #e8ddd7;border-radius:13px;padding:13px;font-size:14px;outline:none}.add{border:0;border-radius:13px;background:#27201c;color:#fff;padding:0 17px;font-weight:900;cursor:pointer}
+.tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}.tag{background:#fff;border:1px solid #eee1db;border-radius:99px;padding:8px 10px;font-size:11px}.tag b{margin-left:5px;color:#c3aea4;cursor:pointer}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:15px}.stat{background:#fff6f0;border-radius:14px;text-align:center;padding:11px}.stat b{font-size:21px}.stat span{display:block;color:#9d8e87;font-size:10px;margin-top:3px}
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}.musicHint{text-align:center;color:#a18e85;font-size:10px;margin-top:10px}.footer{text-align:center;color:#ad9a91;font-size:10px;margin-top:18px}
+@media(max-width:600px){.choices{grid-template-columns:1fr 1fr}.choices .choice:last-child{grid-column:1/-1}.center{width:67px;height:67px}.pointer{border-left-width:14px;border-right-width:14px;border-top-width:34px}}
 </style>
 </head>
 <body>
+<canvas id="fx"></canvas>
 <div class="wrap">
-<header>
-  <span class="badge">FOOD DECISION · 不再纠结吃什么</span>
-  <h1>今天吃什么？🍜</h1>
-  <div class="sub">把选择困难交给它。点一下，让命运决定今晚这一口。</div>
-</header>
+<div class="top"><div class="brand">🍽️ 今天吃什么<small>你的专属吃饭决策器</small></div><button class="music" id="music">🔊 音乐开</button></div>
+<header><h1>今晚不知道吃什么？</h1><div class="sub">预算、人数、口味先告诉我，再让转盘替你做决定。</div></header>
 
-<div class="grid">
-<section class="card main">
-  <div class="controls">
-    <select id="category">
-      <option value="all">🍽️ 全部美食</option>
-      <option value="主食">🍚 主食/正餐</option>
-      <option value="面粉">🍜 面/粉/米线</option>
-      <option value="火锅">🔥 火锅/热辣</option>
-      <option value="烧烤">🥩 烤肉/烧烤</option>
-      <option value="小吃">🥟 小吃/街头</option>
-      <option value="快餐">🍗 快餐/炸物</option>
-      <option value="甜品">🍰 甜品/甜食</option>
-      <option value="饮品">🧋 奶茶/饮品</option>
-      <option value="异国">🍣 日料/韩料/西餐</option>
-      <option value="夜宵">🌙 夜宵</option>
-    </select>
-    <label class="toggle"><input id="avoid" type="checkbox" checked> 尽量不重复</label>
-  </div>
-
-  <section class="hero"><img id="heroImg" alt="美食照片"><div class="heroText"><span class="tag">FOOD DECISION · 今日盲盒</span><h2 id="heroTitle">今天让它替你决定</h2><p id="heroSub">不转盘、不纠结，直接给你一个答案。</p></div></section>
-  <button id="spin" class="spin">🎲 开始帮我决定</button>
-  <div id="result" class="result">
-    <div class="emoji">🤔</div>
-    <h2>今天吃什么？</h2>
-    <p>别想了，交给我。</p>
-  </div>
+<section class="card">
+<div class="choices">
+<div class="choice"><label>💰 预算</label><select id="budget"><option value="20">¥20以内</option><option value="50" selected>¥50左右</option><option value="100">¥100+</option></select></div>
+<div class="choice"><label>👥 人数</label><select id="people"><option value="one">一个人</option><option value="two">两个人</option><option value="group">聚餐</option></select></div>
+<div class="choice"><label>🍽️ 范围</label><select id="scope"><option value="all">全部美食</option><option value="正餐">正餐</option><option value="面粉">面/粉</option><option value="火锅">火锅</option><option value="烧烤">烧烤</option><option value="小吃">小吃</option><option value="甜品">甜品</option><option value="饮品">饮品</option></select></div>
+</div>
+<div class="tastes" id="tastes">
+<button class="taste on" data-t="all">✨ 随便都行</button><button class="taste" data-t="辣">🌶️ 想吃辣</button><button class="taste" data-t="肉">🥩 想吃肉</button><button class="taste" data-t="清爽">🥗 清爽</button><button class="taste" data-t="甜">🍰 想吃甜</button><button class="taste" data-t="饮品">🧋 想喝点</button>
+</div>
+<div class="stage"><div class="glow"></div><div class="pointer"></div><div class="shell"><canvas id="wheel" width="900" height="900"></canvas><div class="center">🍴</div></div></div>
+<button class="spin" id="spin">🎰 开始随机决策</button><div class="musicHint">第一次点击后开启背景音乐；浏览器会要求用户主动点击后才能播放声音，这是正常的自动播放限制。citeturn0search0</div>
 </section>
 
-<aside class="card side">
-  <h3>🎯 先告诉我你的心情</h3>
-  <div class="quick">
-    <button data-mood="all">✨ 随便都行</button><button data-mood="辣">🌶️ 想吃辣</button>
-    <button data-mood="肉">🥩 想吃肉</button><button data-mood="清爽">🥗 清爽点</button>
-    <button data-mood="甜">🍰 想吃甜</button><button data-mood="饮品">🧋 想喝饮品</button>
-  </div>
-  <h3>📊 今日记录</h3>
-  <div class="stats"><div class="stat"><b id="count">0</b><span>今天决定</span></div><div class="stat"><b id="unique">0</b><span>不同美食</span></div><div class="stat"><b id="total">0</b><span>美食库存</span></div></div>
-  <h3>🕘 最近决定</h3><div id="history" class="history"></div>
-  <div class="actions"><button class="ghost" id="clear">清空记录</button><button class="ghost" id="surprise">✨ 全随机</button></div>
-  <div class="tip">💡 <b>这版不再用转盘。</b> 每次抽取、照片、名称、分类和描述都来自同一个美食对象，彻底避免“指到 A、显示 B”的错配。</div>
-</aside>
-</div>
-<footer>本页面为纯前端单文件应用 · 不需要登录 · 选择记录保存在你的浏览器本地</footer>
+<section class="result" id="result"><div class="resultArt"><img id="rImg" alt=""></div><h2 id="rName"></h2><div class="meta" id="rMeta"></div><div class="reason" id="rReason"></div><button class="again" id="again">不吃这个 · 再来一次</button></section>
+
+<section class="card">
+<div style="font-weight:950;margin-bottom:10px">➕ 自定义添加美食</div>
+<div class="manage"><input id="newFood" placeholder="例如：大盘鸡、酸菜鱼、烤冷面…"><button class="add" id="add">加入转盘</button></div>
+<div class="tags" id="tags"></div>
+<div class="stats"><div class="stat"><b id="foodCount">0</b><span>转盘美食</span></div><div class="stat"><b id="todayCount">0</b><span>今日决策</span></div><div class="stat"><b id="turnCount">0</b><span>累计转盘</span></div></div>
+</section>
+<div class="footer">本地保存自定义美食与记录 · 无需注册 · 手机打开即可使用</div>
 </div>
 
 <script>
-const foods = [
-["火锅","重庆火锅","🌶️","麻辣鲜香，适合多人一起吃"],
-["火锅","潮汕牛肉火锅","🥩","清汤涮牛肉，蘸沙茶"],
-["火锅","番茄火锅","🍅","酸甜浓郁，比较温和"],
-["火锅","菌汤火锅","🍄","鲜香型，适合不太能吃辣"],
-["火锅","酸菜鱼","🐟","酸爽开胃，鱼肉嫩"],
-["火锅","酸汤鱼","🐟","酸辣鲜香，贵州风味"],
-["火锅","牛蛙火锅","🐸","重口味爱好者"],
-["火锅","麻辣香锅","🥘","各种肉菜一次配齐"],
-["火锅","麻辣烫","🍢","自己选菜，想吃多少选多少"],
-["火锅","冒菜","🥬","一个人的小火锅"],
-["火锅","串串香","🍢","一串一串吃得很快乐"],
-["火锅","螺蛳鸭脚煲","🦆","广西特色，香辣过瘾"],
-
-["主食","黄焖鸡米饭","🍗","下饭神器"],
-["主食","卤肉饭","🍚","卤汁拌饭，简单满足"],
-["主食","煲仔饭","🥘","锅巴是灵魂"],
-["主食","烧肉饭","🍖","肉多饭香"],
-["主食","烤鸭饭","🦆","脆皮烤鸭配米饭"],
-["主食","盖浇饭","🍛","肉菜浇在热米饭上"],
-["主食","扬州炒饭","🍳","蛋香、米香、配料丰富"],
-["主食","蛋炒饭","🍳","经典又不容易踩雷"],
-["主食","石锅拌饭","🥘","韩式锅巴+拌饭"],
-["主食","咖喱饭","🍛","浓郁咖喱配米饭"],
-["主食","海南鸡饭","🍗","鸡肉嫩，米饭香"],
-["主食","新疆大盘鸡","🍗","鸡肉+土豆+宽面"],
-
-["面粉","螺蛳粉","🍜","酸辣鲜香，臭香上头"],
-["面粉","重庆小面","🍜","麻辣鲜香，适合嗦面"],
-["面粉","兰州牛肉面","🍜","一清二白三红四绿"],
-["面粉","热干面","🍜","芝麻酱香浓"],
-["面粉","刀削面","🍜","面条厚实有嚼劲"],
-["面粉","油泼面","🌶️","热油一泼，香气爆炸"],
-["面粉","炸酱面","🍜","酱香拌面"],
-["面粉","担担面","🌶️","麻辣鲜香"],
-["面粉","酸辣粉","🌶️","酸辣开胃"],
-["面粉","米线","🍜","云南风味米线"],
-["面粉","过桥米线","🍜","汤鲜料足"],
-["面粉","土豆粉","🍜","Q弹爽滑"],
-["面粉","酸菜粉","🥬","酸爽开胃"],
-["面粉","烩面","🍜","河南风味，汤浓面宽"],
-["面粉","凉皮","🥒","凉爽酸辣"],
-["面粉","炒河粉","🍜","锅气十足"],
-["面粉","武汉热干面","🍜","芝麻酱+碱面"],
-["面粉","饺子","🥟","蘸料自由"],
-["面粉","馄饨","🥟","清汤鲜香"],
-["面粉","小笼包","🥟","一口爆汁"],
-
-["烧烤","韩式烤肉","🥩","五花肉、牛肉、蘸料"],
-["烧烤","新疆羊肉串","🍖","孜然辣椒是灵魂"],
-["烧烤","东北烧烤","🍢","烤串+大口吃肉"],
-["烧烤","海鲜烧烤","🦐","生蚝、扇贝、虾"],
-["烧烤","烤鱼","🐟","鱼肉+配菜一锅吃"],
-["烧烤","烤冷面","🥞","东北街头经典"],
-["烧烤","烤生蚝","🦪","蒜香味超足"],
-["烧烤","烤鸡翅","🍗","外焦里嫩"],
-["烧烤","烤五花肉","🥓","油脂香很满足"],
-["烧烤","烤牛肉","🥩","肉食党快乐"],
-["烧烤","烤玉米","🌽","甜香焦香"],
-["烧烤","铁板烧","🥘","锅气十足"],
-
-["小吃","肉夹馍","🥙","酥皮+卤肉"],
-["小吃","煎饼果子","🥞","早餐也能当正餐"],
-["小吃","生煎包","🥟","底脆汁多"],
-["小吃","锅贴","🥟","焦香脆底"],
-["小吃","臭豆腐","🧈","闻着劝退，吃着真香"],
-["小吃","葱油饼","🥞","酥香咸香"],
-["小吃","手抓饼","🥞","加蛋加肠随便搭"],
-["小吃","锅盔","🥙","酥脆扎实"],
-["小吃","鸭血粉丝汤","🍲","南京风味"],
-["小吃","羊肉泡馍","🍲","西北风味"],
-["小吃","灌汤包","🥟","汤汁丰富"],
-["小吃","章鱼小丸子","🐙","外酥内软"],
-["小吃","糖葫芦","🍓","酸甜脆爽"],
-["小吃","炸串","🍢","想吃什么炸什么"],
-["小吃","凉面","🍜","酸辣清爽"],
-
-["快餐","炸鸡","🍗","酥脆快乐"],
-["快餐","汉堡","🍔","简单直接"],
-["快餐","鸡排","🍗","大口吃肉"],
-["快餐","炸鸡汉堡套餐","🍔","套餐党首选"],
-["快餐","薯条+鸡翅","🍟","经典组合"],
-["快餐","披萨","🍕","芝士拉满"],
-["快餐","饭团","🍙","小巧方便"],
-["快餐","三明治","🥪","轻松解决一餐"],
-
-["甜品","芋圆烧仙草","🍨","Q弹+清甜"],
-["甜品","双皮奶","🥛","奶香细腻"],
-["甜品","杨枝甘露","🥭","芒果+西柚"],
-["甜品","冰粉","🍧","冰凉爽口"],
-["甜品","豆花","🍮","甜咸都能选"],
-["甜品","红糖糍粑","🍡","糯叽叽"],
-["甜品","蛋挞","🥧","酥皮奶香"],
-["甜品","提拉米苏","🍰","咖啡可可风味"],
-["甜品","奶油泡芙","🧁","一口爆浆"],
-["甜品","水果捞","🍓","清爽不腻"],
-["甜品","冰淇淋","🍦","今天就想吃甜的"],
-
-["饮品","珍珠奶茶","🧋","经典永不过时"],
-["饮品","生椰拿铁","🥥","椰香咖啡"],
-["饮品","杨枝甘露奶茶","🥭","果香奶香"],
-["饮品","芝芝莓莓","🍓","草莓+奶盖"],
-["饮品","葡萄柚茶","🍊","清爽果茶"],
-["饮品","柠檬茶","🍋","酸甜解腻"],
-["饮品","茉莉奶绿","🫖","奶香茶香"],
-["饮品","黑糖珍珠鲜奶","🥛","奶香浓郁"],
-["饮品","乌龙奶茶","🧋","茶味更明显"],
-["饮品","桃桃乌龙","🍑","桃香清甜"],
-["饮品","冰美式","☕","简单提神"],
-
-["异国","寿司","🍣","日料经典"],
-["异国","拉面","🍜","热乎乎一碗"],
-["异国","韩式炸鸡","🍗","甜辣酥脆"],
-["异国","部队锅","🍲","韩式热辣"],
-["异国","石锅拌饭","🥘","锅巴+辣酱"],
-["异国","意大利面","🍝","番茄/奶油任选"],
-["异国","牛排","🥩","今天想认真吃肉"],
-["异国","墨西哥卷饼","🌯","肉+蔬菜+酱料"],
-["异国","泰式冬阴功","🍲","酸辣鲜香"],
-
-["夜宵","小龙虾","🦞","夜宵王者"],
-["夜宵","烧烤+啤酒","🍻","经典夜宵组合"],
-["夜宵","螺蛳粉","🍜","深夜重口味"],
-["夜宵","炸鸡","🍗","夜晚的快乐"],
-["夜宵","炒粉","🍜","锅气十足"],
-["夜宵","炒饭","🍳","简单又顶饱"],
-["夜宵","烤串","🍢","一把串解决选择困难"],
-["夜宵","麻辣烫","🍢","想吃啥自己选"]
+const BASE=[
+["重庆火锅","🌶️","火锅","辣肉多人"],["潮汕牛肉火锅","🥩","火锅","肉多人"],["番茄火锅","🍅","火锅","清爽多人"],["麻辣香锅","🌶️","火锅","辣肉"],["麻辣烫","🍢","火锅","辣"],["冒菜","🥬","火锅","辣清爽"],["串串香","🍢","火锅","辣肉多人"],
+["新疆大盘鸡","🍗","正餐","辣肉多人"],["黄焖鸡米饭","🍗","正餐","肉一个人"],["卤肉饭","🍚","正餐","肉一个人"],["煲仔饭","🥘","正餐","肉一个人"],["石锅拌饭","🥘","正餐","辣一个人"],["咖喱饭","🍛","正餐","辣肉"],["海南鸡饭","🍗","正餐","肉一个人"],
+["螺蛳粉","🍜","面粉","辣一个人"],["重庆小面","🍜","面粉","辣一个人"],["兰州牛肉面","🍜","面粉","肉一个人"],["热干面","🍜","面粉","一个人"],["油泼面","🌶️","面粉","辣一个人"],["炸酱面","🍜","面粉","肉"],["担担面","🌶️","面粉","辣"],["酸辣粉","🌶️","面粉","辣一个人"],["过桥米线","🍜","面粉","清爽一个人"],["土豆粉","🍜","面粉","清爽"],["饺子","🥟","面粉","肉多人"],["馄饨","🥟","面粉","清爽一个人"],["小笼包","🥟","面粉","一个人"],
+["韩式烤肉","🥩","烧烤","肉多人"],["新疆羊肉串","🍖","烧烤","肉辣"],["东北烧烤","🍢","烧烤","肉辣多人"],["海鲜烧烤","🦐","烧烤","清爽多人"],["烤鱼","🐟","烧烤","辣多人"],["烤冷面","🥞","烧烤","一个人"],["烤生蚝","🦪","烧烤","清爽"],["烤鸡翅","🍗","烧烤","肉"],["烤五花肉","🥓","烧烤","肉"],["烤牛肉","🥩","烧烤","肉"],["铁板烧","🥘","烧烤","肉多人"],
+["肉夹馍","🥙","小吃","肉一个人"],["煎饼果子","🥞","小吃","一个人"],["生煎包","🥟","小吃","一个人"],["锅贴","🥟","小吃","一个人"],["臭豆腐","🧈","小吃","辣"],["葱油饼","🥞","小吃","一个人"],["手抓饼","🥞","小吃","肉一个人"],["鸭血粉丝汤","🍲","小吃","清爽一个人"],["羊肉泡馍","🍲","小吃","肉"],["炸串","🍢","小吃","辣"],["章鱼小丸子","🐙","小吃","一个人"],
+["炸鸡","🍗","快餐","肉一个人"],["汉堡","🍔","快餐","肉一个人"],["鸡排","🍗","快餐","肉一个人"],["披萨","🍕","快餐","肉多人"],["薯条鸡翅","🍟","快餐","肉多人"],
+["芋圆烧仙草","🍨","甜品","甜"],["双皮奶","🥛","甜品","甜"],["杨枝甘露","🥭","甜品","甜清爽"],["冰粉","🍧","甜品","甜清爽"],["红糖糍粑","🍡","甜品","甜"],["蛋挞","🥧","甜品","甜"],["提拉米苏","🍰","甜品","甜"],["水果捞","🍓","甜品","甜清爽"],["冰淇淋","🍦","甜品","甜"],
+["珍珠奶茶","🧋","饮品","饮品甜"],["生椰拿铁","🥥","饮品","饮品"],["芝芝莓莓","🍓","饮品","饮品甜"],["柠檬茶","🍋","饮品","饮品清爽"],["茉莉奶绿","🫖","饮品","饮品"],["黑糖珍珠鲜奶","🥛","饮品","饮品甜"],["乌龙奶茶","🧋","饮品","饮品"],["桃桃乌龙","🍑","饮品","饮品清爽"],
+["寿司","🍣","异国","清爽两个人"],["日式拉面","🍜","异国","肉一个人"],["韩式炸鸡","🍗","异国","肉辣多人"],["部队锅","🍲","异国","辣多人"],["意大利面","🍝","异国","肉两个人"],["牛排","🥩","异国","肉两个人"],["墨西哥卷饼","🌯","异国","辣肉"],["冬阴功","🍲","异国","辣清爽多人"],
+["小龙虾","🦞","夜宵","辣肉多人"],["烧烤+啤酒","🍻","夜宵","辣肉多人"],["炒粉","🍜","夜宵","辣一个人"],["炒饭","🍳","夜宵","一个人"],["烤串","🍢","夜宵","辣肉多人"]
 ];
+let foods=JSON.parse(localStorage.getItem("custom_foods_final")||"null")||BASE.map(x=>({n:x[0],e:x[1],c:x[2],t:x[3],custom:false}));
+const key=f=>f.n, budget=document.getElementById("budget"),people=document.getElementById("people"),scope=document.getElementById("scope"),spin=document.getElementById("spin"),wheel=document.getElementById("wheel"),ctx=wheel.getContext("2d"),result=document.getElementById("result"),rImg=document.getElementById("rImg"),rName=document.getElementById("rName"),rMeta=document.getElementById("rMeta"),rReason=document.getElementById("rReason");
+let taste="all",rot=0,busy=false,turns=+localStorage.getItem("final_turns")||0,today=JSON.parse(localStorage.getItem("final_today")||"[]");
 
-const IMG={
-hotpot:"https://images.unsplash.com/photo-1562403492-454d4b075cac?auto=format&fit=crop&w=1200&q=82",
-noodle:"https://images.unsplash.com/photo-1556742524-750f2ab99913?auto=format&fit=crop&w=1200&q=82",
-bbq:"https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?auto=format&fit=crop&w=1200&q=82",
-tea:"https://images.unsplash.com/photo-1572932759882-bb34c848d1b3?auto=format&fit=crop&w=1200&q=82",
-meal:"https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=82",
-sweet:"https://images.unsplash.com/photo-1551024506-0bccd828d307?auto=format&fit=crop&w=1200&q=82",
-fast:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=82",
-foreign:"https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=1200&q=82"};
-const cat=document.getElementById("category"),btn=document.getElementById("spin"),res=document.getElementById("result"),hist=document.getElementById("history"),count=document.getElementById("count"),unique=document.getElementById("unique"),total=document.getElementById("total"),avoid=document.getElementById("avoid");
-let mood="all",busy=false,history=JSON.parse(localStorage.getItem("food_history_v2")||"[]"),todayKey=new Date().toDateString(),today=localStorage.getItem("food_today_key")===todayKey?JSON.parse(localStorage.getItem("food_today_v2")||"[]"):[];
-const key=x=>x[1];
-function pool(){let a=cat.value==="all"?foods:foods.filter(x=>x[0]===cat.value);if(mood!=="all")a=a.filter(x=>(x[3]+x[1]).includes(mood));if(avoid.checked){const b=a.filter(x=>!today.includes(key(x)));if(b.length)a=b}return a}
-function save(){localStorage.setItem("food_history_v2",JSON.stringify(history.slice(0,30)));localStorage.setItem("food_today_key",todayKey);localStorage.setItem("food_today_v2",JSON.stringify(today))}
-function render(){const f=foods[Math.floor(Math.random()*foods.length)];document.getElementById("heroImg").src=IMG[f[0]==="火锅"?"hotpot":f[0]==="面粉"?"noodle":f[0]==="烧烤"?"bbq":f[0]==="饮品"?"tea":f[0]==="甜品"?"sweet":f[0]==="快餐"?"fast":f[0]==="异国"?"foreign":"meal"];total.textContent=foods.length;count.textContent=today.length;unique.textContent=new Set(today).size;hist.innerHTML=history.length?history.slice(0,10).map(x=>'<div class="item"><img src="'+x[3]+'"><b>'+x[2]+' '+x[1]+'</b><small>'+x[0]+'</small></div>').join(""):'<div style="color:#aaa;font-size:12px;padding:10px 2px">今天还没有决定过～</div>'}
-function imgFor(f){return IMG[f[0]==="火锅"?"hotpot":f[0]==="面粉"?"noodle":f[0]==="烧烤"?"bbq":f[0]==="饮品"?"tea":f[0]==="甜品"?"sweet":f[0]==="快餐"?"fast":f[0]==="异国"?"foreign":"meal"]}
-function show(f){const im=imgFor(f);res.className="result show";res.innerHTML='<img src="'+im+'" alt="'+f[1]+'"><div><div class="eyebrow">'+f[0]+' · 今日答案</div><h2>'+f[2]+' '+f[1]+'</h2><p>'+f[3]+'</p><button class="again" id="again">不吃这个 · 再选一次</button></div>';document.getElementById("again").onclick=decide}
-function decide(){if(busy)return;const a=pool();if(!a.length){alert("这个条件下今天没有可选项啦，换个分类试试～");return}busy=true;btn.disabled=true;const cover=document.createElement("div");cover.className="loading on";cover.innerHTML='<div class="loader"><div class="emoji">🍜</div><b>正在替你翻菜单……</b><span>正在排除纠结项 · 马上揭晓</span></div>';document.body.appendChild(cover);setTimeout(()=>{const f=a[Math.floor(Math.random()*a.length)],im=imgFor(f);today.push(key(f));history.unshift([new Date().toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"}),f[1],f[2],im]);save();show(f);render();cover.remove();busy=false;btn.disabled=false;res.scrollIntoView({behavior:"smooth",block:"center"})},1200)}
-btn.onclick=decide;cat.onchange=render;avoid.onchange=render;document.querySelectorAll("[data-mood]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-mood]").forEach(x=>x.style.outline="none");b.style.outline="2px solid #ff9b87";mood=b.dataset.mood});
-document.querySelectorAll(".quick button").forEach(b=>b.onclick=()=>{if(b.dataset.mood){mood=b.dataset.mood;decide()}});
-document.querySelectorAll(".quick button").forEach(b=>b.onclick=()=>{mood=b.dataset.mood||"all";decide()});
-document.getElementById("clear").onclick=()=>{today=[];history=[];save();render()};document.getElementById("surprise").onclick=()=>{cat.value="all";mood="all";avoid.checked=false;decide()};render();</script>
-</body>
-</html>
+function art(f){const esc=s=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));const palettes={火锅:["#ffb39a","#d94732"],面粉:["#ffe0a6","#c77c32"],烧烤:["#ffc08f","#ad542f"],饮品:["#c8e7ff","#527eb7"],甜品:["#ffd1e2","#c75d92"],快餐:["#ffe18e","#c98a21"],异国:["#d8cef8","#7252a6"],夜宵:["#c8b5a8","#60483d"],正餐:["#f0d1a7","#a9673e"],小吃:["#ffd0aa","#bd6944"]};const p=palettes[f.c]||palettes.正餐;const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 620"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="'+p[0]+'"/><stop offset="1" stop-color="#fff"/></linearGradient><filter id="s"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-opacity=".16"/></filter></defs><rect width="1000" height="620" rx="48" fill="url(#g)"/><circle cx="120" cy="100" r="95" fill="#fff" opacity=".22"/><circle cx="890" cy="500" r="150" fill="#fff" opacity=".16"/><ellipse cx="500" cy="450" rx="300" ry="62" fill="#000" opacity=".08"/><g filter="url(#s)"><ellipse cx="500" cy="410" rx="275" ry="105" fill="#fff"/><ellipse cx="500" cy="395" rx="235" ry="82" fill="'+p[1]+'" opacity=".9"/></g><text x="500" y="395" text-anchor="middle" font-size="190">'+esc(f.e)+'</text><rect x="270" y="495" width="460" height="70" rx="35" fill="#fff" opacity=".92"/><text x="500" y="540" text-anchor="middle" font-family="Arial,sans-serif" font-size="34" font-weight="800" fill="#2b211d">'+esc(f.n)+'</text></svg>';return "data:image/svg+xml;charset=UTF-8,"+encodeURIComponent(svg)}
+
+function draw(){const n=foods.length,W=900,c=W/2,R=420,step=Math.PI*2/n;ctx.clearRect(0,0,W,W);ctx.save();ctx.translate(c,c);ctx.rotate(rot);const colors=["#ffb39a","#ffd37e","#a9d8c7","#b8c7f2","#e8b7d6","#f4c58c","#b8d8eb","#f0a7a7"];for(let i=0;i<n;i++){const a=-Math.PI/2+i*step;ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,R,a,a+step);ctx.closePath();ctx.fillStyle=colors[i%colors.length];ctx.fill();ctx.strokeStyle="#ffffffaa";ctx.lineWidth=4;ctx.stroke();ctx.save();ctx.rotate(a+step/2);ctx.translate(R*.69,0);ctx.rotate(Math.PI/2);ctx.textAlign="center";ctx.fillStyle="#392720";ctx.font=n>18?"26px sans-serif":"32px sans-serif";ctx.fillText(foods[i].e,0,-9);ctx.font=n>18?"bold 19px sans-serif":"bold 23px sans-serif";ctx.fillText(foods[i].n.slice(0,7),0,23);ctx.restore()}ctx.restore();const g=ctx.createRadialGradient(310,250,10,450,450,430);g.addColorStop(0,"#fff8");g.addColorStop(.35,"#fff1");g.addColorStop(1,"#0000");ctx.fillStyle=g;ctx.beginPath();ctx.arc(c,c,R,0,Math.PI*2);ctx.fill()}
+
+function renderTags(){document.getElementById("tags").innerHTML=foods.map((f,i)=>'<span class="tag">'+f.e+' '+f.n+(f.custom?'<b data-i="'+i+'">×</b>':'')+'</span>').join("");document.getElementById("foodCount").textContent=foods.length;document.getElementById("todayCount").textContent=today.length;document.getElementById("turnCount").textContent=turns;document.querySelectorAll(".tag b").forEach(b=>b.onclick=()=>{foods.splice(+b.dataset.i,1);localStorage.setItem("custom_foods_final",JSON.stringify(foods));draw();renderTags()})}
+
+let audio=null,musicTimer=null;
+function startMusic(){if(audio)return;try{audio=new (window.AudioContext||window.webkitAudioContext)();const master=audio.createGain();master.gain.value=.035;master.connect(audio.destination);const chords=[[261.63,329.63,392],[220,277.18,329.63],[246.94,311.13,369.99],[196,246.94,293.66]];let k=0;musicTimer=setInterval(()=>{if(!audio)return;const chord=chords[k++%chords.length];chord.forEach((hz,j)=>{const o=audio.createOscillator(),g=audio.createGain();o.type="sine";o.frequency.value=hz;g.gain.setValueAtTime(.0001,audio.currentTime);g.gain.exponentialRampToValueAtTime(.07,audio.currentTime+.15);g.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+2.8);o.connect(g);g.connect(master);o.start();o.stop(audio.currentTime+3)});},2800)}catch(e){}}
+function tick(hz=300){if(!audio)return;const o=audio.createOscillator(),g=audio.createGain();o.type="triangle";o.frequency.value=hz;g.gain.value=.035;o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+.045)}
+function winSound(){if(!audio)return;[523,659,784,1046].forEach((hz,i)=>setTimeout(()=>tick(hz),i*90))}
+
+function fireworks(){const c=document.getElementById("fx"),x=c.getContext("2d");c.width=innerWidth*devicePixelRatio;c.height=innerHeight*devicePixelRatio;x.scale(devicePixelRatio,devicePixelRatio);const ps=[];for(let i=0;i<90;i++){const a=Math.random()*Math.PI*2,s=2+Math.random()*6;ps.push({x:innerWidth*.5+(Math.random()-.5)*80,y:innerHeight*.38+(Math.random()-.5)*50,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,h:Math.random()*360})}const ribbons=[];for(let i=0;i<35;i++)ribbons.push({x:Math.random()*innerWidth,y:-20-Math.random()*100,vx:(Math.random()-.5)*2,vy:2+Math.random()*3,r:Math.random()*6});let t=0;function frame(){x.clearRect(0,0,innerWidth,innerHeight);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.045;p.life-=.014;x.globalAlpha=Math.max(0,p.life);x.fillStyle="hsl("+p.h+",90%,60%)";x.beginPath();x.arc(p.x,p.y,3.2,0,7);x.fill()});ribbons.forEach(r=>{r.x+=r.vx;r.y+=r.vy;r.r+=.08;x.save();x.translate(r.x,r.y);x.rotate(r.r);x.globalAlpha=.8;x.fillStyle="hsl("+((r.r*80)%360)+",85%,62%)";x.fillRect(-3,-9,6,18);x.restore()});if(t++<110)requestAnimationFrame(frame);else x.clearRect(0,0,innerWidth,innerHeight)}frame()}
+
+function eligible(){let a=foods.slice();if(scope.value!=="all")a=a.filter(f=>f.c===scope.value);if(taste!=="all")a=a.filter(f=>f.t.includes(taste));const b=+budget.value;if(b<=20)a=a.filter(f=>!["牛排","海鲜烧烤","潮汕牛肉火锅","小龙虾","韩式烤肉"].includes(f.n));if(people.value==="one")a=a.filter(f=>!["重庆火锅","韩式烤肉","海鲜烧烤","部队锅","小龙虾"].includes(f.n));if(people.value==="group")a=a.filter(f=>!["螺蛳粉","重庆小面","蛋挞","冰美式"].includes(f.n));return a.length?a:foods}
+function decide(){if(busy)return;startMusic();const a=eligible();busy=true;spin.disabled=true;let idx=Math.floor(Math.random()*a.length),f=a[idx],fi=foods.indexOf(f),n=foods.length,step=Math.PI*2/n,target=-step*(fi+.5),delta=((target-rot)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)+(Math.PI*2)*(7+Math.floor(Math.random()*2)),start=rot,end=rot+delta,dur=6000+Math.random()*900,t0=performance.now(),last=-1;function frame(now){const p=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-p,4.4);rot=start+(end-start)*e;draw();const q=Math.floor((rot-start)/step);if(q!==last){last=q;tick(230+Math.min(600,q*13))}if(p<1)requestAnimationFrame(frame);else{rot=end;draw();turns++;today.push(key(f));today=today.slice(-30);localStorage.setItem("final_turns",turns);localStorage.setItem("final_today",JSON.stringify(today));rImg.src=art(f);rImg.alt=f.n;rName.textContent=f.e+" "+f.n;rMeta.textContent=f.c+" · "+(people.value==="one"?"适合一个人":people.value==="two"?"适合两个人":"适合聚餐")+" · 预算 ¥"+budget.value+"+";rReason.textContent="根据你的预算、人数和口味筛选后，随机决定今晚这一口。";result.classList.add("show");fireworks();winSound();if(navigator.vibrate)navigator.vibrate([30,60,30]);busy=false;spin.disabled=false;renderTags();result.scrollIntoView({behavior:"smooth",block:"center"})}}requestAnimationFrame(frame)}
+document.querySelectorAll(".taste").forEach(b=>b.onclick=()=>{document.querySelectorAll(".taste").forEach(x=>x.classList.remove("on"));b.classList.add("on");taste=b.dataset.t});
+spin.onclick=decide;document.getElementById("again").onclick=decide;
+document.getElementById("add").onclick=()=>{const v=document.getElementById("newFood").value.trim();if(!v)return;foods.push({n:v,e:"🍽️",c:"自定义",t:"",custom:true});localStorage.setItem("custom_foods_final",JSON.stringify(foods));document.getElementById("newFood").value="";draw();renderTags();tick(660)};
+document.getElementById("music").onclick=()=>{if(!audio){startMusic();document.getElementById("music").textContent="🔊 音乐开"}else{audio.close();audio=null;clearInterval(musicTimer);musicTimer=null;document.getElementById("music").textContent="🔇 音乐关"}};
+draw();renderTags();
+</script>
+</body></html>
