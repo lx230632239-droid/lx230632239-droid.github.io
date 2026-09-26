@@ -24,7 +24,7 @@ button,input,select{font:inherit}.app{max-width:760px;margin:auto;padding:14px 1
 <section class="card controls">
 <div class="moods" id="moods"><button class="mood on" data-m="all">🎲 随便吃</button><button class="mood" data-m="spicy">🌶️ 想吃辣</button><button class="mood" data-m="meat">🥩 想吃肉</button><button class="mood" data-m="fresh">🥗 清爽</button><button class="mood" data-m="sweet">🍰 想吃甜</button><button class="mood" data-m="drink">🧋 想喝点</button></div>
 <div class="fields"><div class="field"><label>预算</label><select id="budget"><option>¥20以内</option><option selected>¥20–50</option><option>¥50–100</option><option>¥100+</option></select></div><div class="field"><label>人数</label><select id="people"><option>单人</option><option selected>双人</option><option>三到五人</option><option>六到八人</option><option>团建</option></select></div><div class="field"><label>口味</label><select id="taste"><option>随便</option><option>清淡</option><option>重口</option><option>酸辣</option><option>甜口</option></select></div></div>
-<div class="menuPanel"><div class="menuLabel">🎁 抽哪个菜单？</div><div class="menuSources"><button class="menuSource on" data-source="system">系统菜单 <span id="systemCount"></span></button><button class="menuSource" data-source="custom">我的菜单 <span id="customCount"></span></button></div><div class="menuLabel" style="margin-top:9px">🍽️ 菜单分类</div><div class="categories" id="categories"><button class="category on" data-cat="all">全部</button><button class="category" data-cat="主食">主食</button><button class="category" data-cat="正餐">正餐</button><button class="category" data-cat="小吃">小吃</button><button class="category" data-cat="甜品">甜品</button><button class="category" data-cat="奶茶">奶茶</button><button class="category" data-cat="饮品">饮品</button><button class="category" data-cat="烧烤">烧烤</button><button class="category" data-cat="火锅">火锅</button></div><div class="menuCount" id="menuCount"></div><div class="detailHead">📋 本类菜品明细</div><div class="categoryDetails" id="categoryDetails"></div><div class="customMenuEditor" id="customMenuEditor"><div class="customMenuHead">✍️ 我的菜单 · 自定义添加</div><div class="customFields"><input id="custom" placeholder="例如：番茄牛腩面、芝士奶茶"><select id="customCat"><option>主食</option><option>正餐</option><option>小吃</option><option>甜品</option><option>奶茶</option><option>饮品</option><option>烧烤</option><option>火锅</option></select><button id="add">加入我的菜单</button></div><div class="customhint">只有「我的菜单」会抽你自己设定的内容；系统菜单不会被改动。</div><div id="customMenuList"></div></div></div>
+<div class="menuPanel"><div class="menuLabel">🎁 抽哪个菜单？</div><div class="menuSources"><button class="menuSource on" data-source="system">系统菜单 <span id="systemCount"></span></button><button class="menuSource" data-source="custom">我的菜单 <span id="customCount"></span></button></div><div class="menuLabel" style="margin-top:9px">🍽️ 菜单分类</div><div class="categories" id="categories"><button class="category on" data-cat="all">全部</button><button class="category" data-cat="主食">主食</button><button class="category" data-cat="正餐">正餐</button><button class="category" data-cat="小吃">小吃</button><button class="category" data-cat="甜品">甜品</button><button class="category" data-cat="奶茶">奶茶</button><button class="category" data-cat="饮品">饮品</button><button class="category" data-cat="烧烤">烧烤</button><button class="category" data-cat="火锅">火锅</button><button class="category" data-cat="早餐">早餐</button></div><div class="menuCount" id="menuCount"></div><div class="detailHead">📋 本类菜品明细（可上下滑动查看全部）</div><div class="categoryDetails" id="categoryDetails"></div><div class="customMenuEditor" id="customMenuEditor"><div class="customMenuHead">✍️ 我的菜单 · 自定义添加</div><div class="customFields"><input id="custom" placeholder="例如：番茄牛腩面、芝士奶茶"><select id="customCat"><option>主食</option><option>正餐</option><option>小吃</option><option>甜品</option><option>奶茶</option><option>饮品</option><option>烧烤</option><option>火锅</option><option>早餐</option></select><button id="add">加入我的菜单</button></div><div class="customhint">只有「我的菜单」会抽你自己设定的内容；系统菜单不会被改动。</div><div id="customMenuList"></div></div></div>
 <button class="start" id="start">🎁 开始决定今晚吃什么<small>快速卡片滚动 · 温柔音效 · 抽中有惊喜</small></button>
 </section>
 <section class="card draw" id="draw"><div class="drawtitle" id="drawtitle">正在挑选今晚的美食……</div><div class="trackbox"><div class="track" id="track"></div></div><div class="hint" id="hint">中间爱心停住的那一张，就是最终答案。</div></section>
@@ -75,6 +75,84 @@ const moreFoods=[["天津煎饼果子","小吃 · 天津","🥞","fresh","小吃
 for(const a of moreFoods){const [n,c,e,m,t,region]=a;foods.push({n,c,d:n+'，'+region+'的代表性风味，保留当地常见做法与口感特色。',e,m,t,r:(9.0+(n.length%7)/10).toFixed(1),s:(9.1+(n.length%8)/10).toFixed(1),region,rd:region+'的地方饮食中具有代表性的风味之一，体现当地食材与烹饪习惯。',img:'new'});}
 
 function foodCat(f){if(f.k)return f.k;const n=f.n||'',c=f.c||'',t=f.t||'';if(/奶茶/.test(n+' '+c)||f.e==='🧋')return '奶茶';if(t==='甜品'||/甜品/.test(c))return '甜品';if(t==='饮品'||/饮品|咖啡|茶饮/.test(c))return '饮品';if(t==='小吃'||/小吃|点心|粤点|熟食/.test(c))return '小吃';if(/烧烤/.test(c)||t==='夜宵'&&/串|烧烤|烤/.test(n))return '烧烤';if(/火锅/.test(c)||/火锅/.test(n))return '火锅';if(t==='主食'||/面|粉|饭|粥/.test(n)&&!/(炒菜|狮子头|烤鸭)/.test(c))return '主食';return '正餐'}
+
+const extraFoods=[
+["提拉米苏","甜品 · 意大利","☕","sweet","甜品","意大利"],
+["草莓蛋糕","甜品 · 水果","🍓","sweet","甜品","全国"],
+["芒果千层","甜品 · 芒果","🥭","sweet","甜品","全国"],
+["抹茶蛋糕","甜品 · 抹茶","🍵","sweet","甜品","日本"],
+["巧克力熔岩蛋糕","甜品 · 巧克力","🍫","sweet","甜品","法国"],
+["可丽露","甜品 · 法式","🍮","sweet","甜品","法国"],
+["泡芙","甜品 · 西点","🥐","sweet","甜品","法国"],
+["蛋挞","甜品 · 港式","🥧","sweet","甜品","广东"],
+["红豆双皮奶","甜品 · 广东","🥛","sweet","甜品","广东顺德"],
+["豆花","甜品 · 西南","🍮","sweet","甜品","四川"],
+["酒酿圆子","甜品 · 江南","🍡","sweet","甜品","江南"],
+["红豆沙","甜品 · 糖水","🍧","sweet","甜品","广东"],
+["芝士奶茶","奶茶 · 奶香","🧋","drink","奶茶","全国"],
+["黑糖珍珠奶茶","奶茶 · 黑糖","🧋","drink","奶茶","台湾"],
+["抹茶奶茶","奶茶 · 抹茶","🧋","drink","奶茶","全国"],
+["芋泥奶茶","奶茶 · 芋泥","🧋","drink","奶茶","全国"],
+["椰香奶茶","奶茶 · 椰香","🧋","drink","奶茶","全国"],
+["蜜桃乌龙奶茶","奶茶 · 水果茶","🧋","drink","奶茶","全国"],
+["茉莉奶绿","奶茶 · 茉莉","🧋","drink","奶茶","全国"],
+["草莓奶茶","奶茶 · 草莓","🧋","drink","奶茶","全国"],
+["杨枝甘露奶茶","奶茶 · 芒果","🧋","drink","奶茶","全国"],
+["红茶拿铁","奶茶 · 红茶","🧋","drink","奶茶","全国"],
+["阿萨姆奶茶","奶茶 · 红茶","🧋","drink","奶茶","全国"],
+["乌龙奶茶","奶茶 · 乌龙","🧋","drink","奶茶","全国"],
+["桃桃乌龙","饮品 · 水果茶","🍑","drink","饮品","全国"],
+["百香果茶","饮品 · 果茶","🥭","drink","饮品","全国"],
+["西柚茶","饮品 · 果茶","🍊","drink","饮品","全国"],
+["葡萄冰茶","饮品 · 果茶","🍇","drink","饮品","全国"],
+["蜜桃气泡水","饮品 · 气泡饮","🍑","drink","饮品","全国"],
+["青提气泡水","饮品 · 气泡饮","🍇","drink","饮品","全国"],
+["鲜榨橙汁","饮品 · 果汁","🍊","drink","饮品","全国"],
+["西瓜汁","饮品 · 果汁","🍉","drink","饮品","全国"],
+["椰青冰饮","饮品 · 椰子","🥥","drink","饮品","海南"],
+["蜂蜜柚子茶","饮品 · 柚子茶","🍯","drink","饮品","韩国"],
+["酸梅汤","饮品 · 传统饮品","🥤","drink","饮品","中国"],
+["桂花乌龙茶","饮品 · 茶饮","🍵","drink","饮品","中国"],
+["烤鸡翅","烧烤 · 烤物","🍗","meat","烧烤","全国"],
+["烤牛肉串","烧烤 · 烤串","🍢","meat","烧烤","全国"],
+["烤五花肉","烧烤 · 烤肉","🥩","meat","烧烤","全国"],
+["烤茄子","烧烤 · 蔬菜","🍆","fresh","烧烤","全国"],
+["烤玉米","烧烤 · 蔬菜","🌽","fresh","烧烤","全国"],
+["烤韭菜","烧烤 · 蔬菜","🥬","fresh","烧烤","全国"],
+["烤金针菇","烧烤 · 蔬菜","🍄","fresh","烧烤","全国"],
+["烤香菇","烧烤 · 蔬菜","🍄","fresh","烧烤","全国"],
+["烤鱿鱼","烧烤 · 海鲜","🦑","fresh","烧烤","沿海地区"],
+["烤扇贝","烧烤 · 海鲜","🐚","fresh","烧烤","沿海地区"],
+["烤鸡腿","烧烤 · 烤物","🍗","meat","烧烤","全国"],
+["烤排骨","烧烤 · 烤物","🍖","meat","烧烤","全国"],
+["麻辣锅","火锅 · 麻辣","🌶️","spicy","火锅","四川"],
+["番茄火锅","火锅 · 番茄","🍅","fresh","火锅","全国"],
+["菌汤火锅","火锅 · 菌菇","🍄","fresh","火锅","云南"],
+["酸菜火锅","火锅 · 酸香","🥬","fresh","火锅","东北"],
+["羊蝎子火锅","火锅 · 羊肉","🥩","meat","火锅","北京"],
+["老北京铜锅涮肉","火锅 · 涮肉","🥩","meat","火锅","北京"],
+["椰子鸡火锅","火锅 · 海南","🥥","fresh","火锅","海南"],
+["番茄牛肉火锅","火锅 · 牛肉","🥩","meat","火锅","全国"],
+["鱼头火锅","火锅 · 鱼鲜","🐟","fresh","火锅","湖南"],
+["菌汤锅","火锅 · 菌菇","🍄","fresh","火锅","云南"],
+["鸭血火锅","火锅 · 川味","🌶️","spicy","火锅","重庆"],
+["海鲜火锅","火锅 · 海鲜","🦐","fresh","火锅","沿海地区"],
+["炸串","小吃 · 炸物","🍢","meat","小吃","全国"],
+["臭豆腐","小吃 · 湖南","🧈","spicy","小吃","湖南长沙"],
+["章鱼小丸子","小吃 · 日式","🐙","fresh","小吃","日本"],
+["鸡蛋灌饼","小吃 · 早餐","🥞","meat","小吃","中国"],
+["手抓饼","小吃 · 早餐","🥞","meat","小吃","中国"],
+["烤冷面","小吃 · 东北","🍜","spicy","小吃","东北"],
+["关东煮","小吃 · 日式","🍢","fresh","小吃","日本"],
+["饭团","小吃 · 米食","🍙","fresh","小吃","日本"],
+["铜锣烧","小吃 · 日式甜点","🥞","sweet","小吃","日本"],
+["猫耳朵","小吃 · 面点","🥨","sweet","小吃","中国"],
+["锅盔","小吃 · 西北","🥙","meat","小吃","陕西"],
+["狼牙土豆","小吃 · 四川","🥔","spicy","小吃","四川"],
+["酸辣蕨根粉","小吃 · 西南","🍜","spicy","小吃","西南"]
+];
+for(const a of extraFoods){const [n,c,e,m,k,region]=a;foods.push({n,c,d:n+'，'+region+'常见风味，适合喜欢这一口的人。',e,m,t:k==='甜品'?'甜品':k==='奶茶'?'奶茶':k==='饮品'?'饮品':k,k,r:'9.2',s:'9.3',region,rd:region+'的代表性风味之一，具有鲜明的地方饮食特色。',img:'new'});}
+
 foods.forEach(f=>f.k=foodCat(f));
 function loadJSON(key,fallback){try{const v=localStorage.getItem(key);return v?JSON.parse(v):fallback}catch(e){try{localStorage.removeItem(key)}catch(_){}return fallback}}
 function saveJSON(key,value){try{localStorage.setItem(key,JSON.stringify(value))}catch(e){}}
@@ -83,11 +161,13 @@ if(!Array.isArray(custom))custom=[];if(!Array.isArray(fav))fav=[];if(!Array.isAr
 let mood='all',tab='fav',current=null,sound=(()=>{try{return localStorage.getItem('food_sound_v4')!=='off'}catch(e){return true}})(),menuSource='system',category='all';
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function emojiFor(f){const e=String(f.e||'');if(['spicy','fresh','meat','sweet','drink'].includes(e))return ({spicy:'🌶️',fresh:'🥗',meat:'🥩',sweet:'🍰',drink:'🥤'})[e];return e||({甜品:'🍰',奶茶:'🧋',饮品:'🥤',烧烤:'🍢',火锅:'🍲',小吃:'🥟',主食:'🍜',正餐:'🍱',早餐:'🥞'})[foodCat(f)]||'🍽️'}
 function foodSvg(f){
+const extraThemes={dessert:['#e7b4bd','🍰','甜品 · 细腻香甜'],drink:['#b9d3c6','🥤','清爽饮品 · 冰凉好喝'],bbq:['#d98e68','🍢','炭火烧烤 · 香气十足'],hotpot2:['#d66f59','🍲','热气腾腾 · 丰富涮煮']};
 const themes={hotpot:['#e89a72','🍲','锅底沸腾 · 毛肚 · 牛肉'],beefhotpot:['#e8b58f','🍲','清汤锅底 · 鲜切牛肉'],luosifen:['#d6b17b','🍜','酸笋 · 米粉 · 花生腐竹'],chongqingnoodle:['#df9a73','🍜','麻辣汤底 · 碱水面'],koreanbbq:['#d99176','🥩','烤盘 · 五花肉 · 生菜'],lambskewer:['#e3bd75','🍢','炭火 · 羊肉串 · 孜然'],dongbeibbq:['#d79b72','🍢','炭火 · 肉串 · 烤蔬菜'],malaxiangguo:['#df8b70','🌶️','香辣 · 多种食材'],suancaiyu:['#b9c98e','🐟','酸菜 · 鱼片 · 汤汁'],kaoyu:['#9fc2c4','🐟','整鱼 · 烤制 · 汤汁'],xiaolongxia:['#e78b78','🦞','麻辣 · 蒜香 · 小龙虾'],beijingduck:['#d68c72','🦆','烤鸭 · 薄饼 · 甜面酱'],lanzhounoodle:['#d8b77c','🍜','牛肉 · 萝卜 · 清汤'],roujiamo:['#d5ae77','🥙','白吉馍 · 腊汁肉'],shengjian:['#dfb16f','🥟','焦底 · 汤汁 · 面皮'],changfen:['#e7d2ae','🥟','米浆薄皮 · 肉蛋虾'],sushi:['#b9d2c6','🍣','醋饭 · 鱼生 · 海鲜'],friedchicken:['#e4b467','🍗','酥脆 · 炸鸡 · 酱汁'],bibimbap:['#c8aa7e','🥘','米饭 · 牛肉 · 蔬菜'],tomatonoodle:['#df9a82','🍅','番茄 · 牛腩 · 面条'],pizza:['#e1b06d','🍕','芝士 · 番茄 · 配料'],steak:['#c77e6f','🥩','牛排 · 酱汁 · 配菜'],taro:['#bda8d0','🍧','芋圆 · 仙草 · 红糖'],mangodessert:['#efc766','🥭','芒果 · 西柚 · 椰奶'],milk:['#e8d6bd','🥛','牛奶 · 奶皮 · 细腻'],bubbletea:['#c89f7e','🧋','茶香 · 奶香 · 珍珠'],latte:['#b99170','☕','咖啡 · 生椰 · 冰块'],lemontea:['#d4bd6e','🍋','红茶 · 柠檬 · 冰爽'],bingfen:['#b9c8d1','🍧','冰粉 · 红糖 · 花生'],oyster:['#9fb9bd','🦪','生蚝 · 蒜蓉 · 炭火'],porridge:['#e3c59b','🥣','砂锅 · 海鲜 · 米粥'],claypot:['#c99972','🍚','砂锅 · 锅巴 · 腊味'],suannoodle:['#d99376','🍜','酸辣 · 红薯粉 · 花生'],congnomian:['#d6b276','🍜','葱油 · 面条 · 酱香'],xiaolongbao:['#e0c8a8','🥟','薄皮 · 汤汁 · 鲜肉'],zhajiangmian:['#c49a72','🍜','炸酱 · 面条 · 菜码'],custom:['#d9c0ae','🍽️','你的专属美食']};
-const z=themes[f.img]||['#e2c8b8',f.e,'地方风味 · '+foodCat(f)];const scene=foodScene(f,z);return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700"><defs><linearGradient id="g"><stop stop-color="'+z[0]+'"/><stop offset="1" stop-color="#fff5ec"/></linearGradient><filter id="shadow"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#50352b" flood-opacity=".16"/></filter></defs><rect width="1200" height="700" fill="url(#g)"/><circle cx="1020" cy="120" r="180" fill="#fff8"/><circle cx="120" cy="610" r="210" fill="#fff5"/><g filter="url(#shadow)">'+scene+'</g><text x="600" y="585" text-anchor="middle" font-family="sans-serif" font-size="40" font-weight="900" fill="#4b352c">'+esc(f.n)+'</text><text x="600" y="625" text-anchor="middle" font-family="sans-serif" font-size="21" fill="#765f55">'+esc(z[2])+'</text></svg>')}
+const cat=foodCat(f);const z=themes[f.img]||((cat==='甜品'||cat==='奶茶')?extraThemes.dessert:(cat==='饮品'?extraThemes.drink:(cat==='烧烤'?extraThemes.bbq:(cat==='火锅'?extraThemes.hotpot2:['#e2c8b8',emojiFor(f),'地方风味 · '+cat])));const scene=foodScene(f,z);return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700"><defs><linearGradient id="g"><stop stop-color="'+z[0]+'"/><stop offset="1" stop-color="#fff5ec"/></linearGradient><filter id="shadow"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#50352b" flood-opacity=".16"/></filter></defs><rect width="1200" height="700" fill="url(#g)"/><circle cx="1020" cy="120" r="180" fill="#fff8"/><circle cx="120" cy="610" r="210" fill="#fff5"/><g filter="url(#shadow)">'+scene+'</g><text x="600" y="585" text-anchor="middle" font-family="sans-serif" font-size="40" font-weight="900" fill="#4b352c">'+esc(f.n)+'</text><text x="600" y="625" text-anchor="middle" font-family="sans-serif" font-size="21" fill="#765f55">'+esc(z[2])+'</text></svg>')}
 function foodScene(f,z){
- const n=f.n||'',k=foodCat(f),e=z[1]||f.e||'🍽️';
+ const n=f.n||'',k=foodCat(f),e=z[1]||emojiFor(f)||'🍽️';
  const escx=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
  let plate='<ellipse cx="600" cy="405" rx="315" ry="145" fill="#fff"/><ellipse cx="600" cy="405" rx="260" ry="108" fill="#f4e9df"/>';
  let steam='<path d="M520 260 Q500 220 525 185" stroke="#fff" stroke-width="13" fill="none" stroke-linecap="round" opacity=".7"/><path d="M600 250 Q580 210 605 175" stroke="#fff" stroke-width="13" fill="none" stroke-linecap="round" opacity=".7"/><path d="M680 260 Q660 220 685 185" stroke="#fff" stroke-width="13" fill="none" stroke-linecap="round" opacity=".7"/>';
@@ -112,12 +192,12 @@ function foodScene(f,z){
 function play(win=false){if(!sound)return;try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return;const a=new A(),ns=win?[392,523,659,784]:[330,392];ns.forEach((n,i)=>{let o=a.createOscillator(),g=a.createGain(),t=a.currentTime+i*.08;o.frequency.value=n;o.type='sine';g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.04,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.17);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+.19)})}catch(e){}}
 function confetti(){let b=document.createElement('div');b.className='confetti';document.body.appendChild(b);for(let i=0;i<45;i++){let x=document.createElement('i');x.style.left=Math.random()*100+'vw';x.style.setProperty('--x',(Math.random()*80-40)+'vw');x.style.background=['#ed8069','#f0bc70','#9fbe9b','#c5a0d0'][i%4];x.style.animationDelay=Math.random()*.15+'s';b.appendChild(x)}setTimeout(()=>b.remove(),1700)}
 function pool(){let base=menuSource==='system'?foods:custom;let p=base.filter(f=>(category==='all'||foodCat(f)===category)&&(mood==='all'||f.m==='all'||f.m===mood));let recent=hist.slice(-7).map(x=>x.n);let fresh=p.filter(f=>!recent.includes(f.n));return fresh.length?fresh:p}
-function mini(f){return '<div class="mini"><img class="micon" src="'+foodSvg(f)+'" alt="'+esc(f.n)+'"><b>'+esc(f.n)+'</b><small>'+esc(f.c)+'</small></div>}
+function mini(f){return '<div class="mini"><img class="micon" src="'+foodSvg(f)+'" alt="'+esc(f.n)+'"><b>'+esc(f.n)+'</b></div>}
 function renderCustomMenu(){const box=$('customMenuList');if(!custom.length){box.innerHTML='<div class="menuEmpty">还没有自定义菜单。添加几道你真正想吃的，盲盒就只从这里抽。</div>';return}box.innerHTML='<div class="menuItems">'+custom.slice().reverse().map((x,i)=>'<div class="menuItem">'+x.e+' '+esc(x.n)+' · '+esc(foodCat(x))+'<button data-ci="'+i+'" aria-label="删除">×</button></div>').join('')+'</div>';box.querySelectorAll('[data-ci]').forEach(b=>b.onclick=()=>{const idx=custom.length-1-Number(b.dataset.ci);custom.splice(idx,1);saveJSON('food_custom_v4',custom);renderMenu()})}
 function renderCategoryDetails(){const box=$('categoryDetails');if(!box)return;const base=menuSource==='system'?foods:custom;const filtered=base.filter(f=>category==='all'||foodCat(f)===category);if(!filtered.length){box.innerHTML='<div class="detailEmpty">这一类暂时没有菜品。去「我的菜单」添加，并选择对应分类。</div>';return}box.innerHTML=filtered.map(f=>'<div class="detailItem"><img src="'+foodSvg(f)+'" alt="'+esc(f.n)+'"><div><b>'+esc(f.n)+'</b><small>'+esc(foodCat(f))+' · '+esc(f.region||'地方风味')+'</small></div></div>').join('')}
 function renderMenu(){document.querySelectorAll('.menuSource').forEach(b=>b.classList.toggle('on',b.dataset.source===menuSource));document.querySelectorAll('.category').forEach(b=>b.classList.toggle('on',b.dataset.cat===category));$('systemCount').textContent=foods.length+'道';$('customCount').textContent=custom.length+'道';$('customMenuEditor').style.display=menuSource==='custom'?'block':'none';const base=menuSource==='system'?foods:custom;const filtered=base.filter(f=>category==='all'||foodCat(f)===category);$('menuCount').textContent='当前可抽：'+filtered.length+'道';renderCategoryDetails();renderCustomMenu()}
 function renderList(){const arr=tab==='fav'?fav:hist;const list=$('list');if(!arr.length){list.innerHTML='<div class="empty">'+(tab==='fav'?'还没有收藏。抽到喜欢的美食后，点「我喜欢，收藏它」吧 ❤️':'还没有抽取记录。今晚先抽一份吧 ✨')+'</div>';return}list.innerHTML=arr.slice().reverse().map((x,i)=>'<div class="row"><div class="rowicon">'+x.e+'</div><div class="rowmain"><b>'+esc(x.n)+'</b><small>'+esc(x.c||'美食')+(tab==='history'?' · '+new Date(x.time).toLocaleDateString():'')+'</small></div><button class="del" data-i="'+i+'">删除</button></div>').join('');list.querySelectorAll('.del').forEach(btn=>btn.onclick=()=>{let idx=arr.length-1-Number(btn.dataset.i);arr.splice(idx,1);localStorage.setItem(tab==='fav'?'food_fav_v4':'food_hist_v4',JSON.stringify(arr));renderList()})}
-function show(f){current=f;$('foodimg').src=foodSvg(f);$('tag').textContent=f.e+'  '+f.c;$('cat').textContent=f.c;$('name').textContent=f.n;$('desc').textContent=f.d;$('type').textContent=f.t;$('rec').textContent=f.r;$('score').textContent=f.s;$('regionTitle').textContent='📍 '+f.region;$('regionText').textContent=f.rd;$('like').textContent=fav.some(x=>x.n===f.n)?'💖 已收藏':'❤️ 我喜欢，收藏它';$('result').classList.add('show')}
+function show(f){current=f;$('foodimg').src=foodSvg(f);$('tag').textContent=emojiFor(f)+'  '+f.c;$('cat').textContent=f.c;$('name').textContent=f.n;$('desc').textContent=f.d;$('type').textContent=f.t;$('rec').textContent=f.r;$('score').textContent=f.s;$('regionTitle').textContent='📍 '+f.region;$('regionText').textContent=f.rd;$('like').textContent=fav.some(x=>x.n===f.n)?'💖 已收藏':'❤️ 我喜欢，收藏它';$('result').classList.add('show')}
 function decide(){const p=pool();if(!p.length){alert(menuSource==='custom'?'「我的菜单」里还没有符合当前分类/口味的美食，请先添加。':'当前分类没有符合条件的美食，请换一个分类。');return}play();$('start').disabled=true;$('draw').classList.add('show');$('result').classList.remove('show');const winner=p[Math.floor(Math.random()*p.length)];let seq=[];for(let i=0;i<12;i++)seq.push(p[Math.floor(Math.random()*p.length)]);const wi=10;seq[wi]=winner;$('track').innerHTML=seq.map(mini).join('');const tr=$('track');tr.style.transition='none';tr.style.transform='translateX(0)';const cardW=124;const center=Math.min(innerWidth-28,760)/2-58;const target=-(wi*cardW)+center;requestAnimationFrame(()=>{tr.style.transition='transform 2.35s cubic-bezier(.08,.78,.12,1)';tr.style.transform='translateX('+target+'px)'});setTimeout(()=>{show(winner);hist.push({n:winner.n,e:winner.e,c:winner.c,time:Date.now()});hist=hist.slice(-50);saveJSON('food_hist_v4',hist);renderList();play(true);confetti();$('start').disabled=false;$('drawtitle').textContent='✨ 决定好了';$('hint').textContent='中间爱心停住的就是它。';scrollTo({top:$('result').offsetTop-8,behavior:'smooth'})},2500)}
 document.querySelectorAll('.mood').forEach(b=>b.onclick=()=>{document.querySelectorAll('.mood').forEach(x=>x.classList.remove('on'));b.classList.add('on');mood=b.dataset.m;play()});
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));b.classList.add('on');tab=b.dataset.tab;renderList()});
