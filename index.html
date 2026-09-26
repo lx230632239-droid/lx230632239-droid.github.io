@@ -17,7 +17,7 @@ button,input,select{font:inherit}.app{max-width:760px;margin:auto;padding:10px 1
 .controls{padding:13px}.moods,.sources,.cats{display:flex;gap:7px;overflow:auto;scrollbar-width:none}.moods::-webkit-scrollbar,.sources::-webkit-scrollbar,.cats::-webkit-scrollbar{display:none}
 .pill{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 11px;white-space:nowrap;font-size:10px;color:#705f57}.pill.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 .filters{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.field label{display:block;font-size:9px;color:var(--muted);font-weight:900;margin:0 0 5px}.field select{width:100%;height:38px;border:1px solid var(--line);border-radius:11px;background:#fff;padding:0 8px;font-size:10px}
-.menu{margin-top:10px;padding:11px;border:1px solid #f0e2d9;border-radius:17px;background:#fffaf7}.label{font-size:10px;font-weight:950;color:#806d64;margin-bottom:7px}.count{font-size:9px;color:var(--muted);margin-top:7px}
+.menu{margin-top:10px;padding:8px;border:1px solid #f0e2d9;border-radius:17px;background:#fffaf7}.menuToggle{width:100%;display:flex;align-items:center;justify-content:space-between;border:0;background:transparent;padding:7px 4px;color:#806d64;font-size:11px;font-weight:950}.menuToggle span:last-child{font-size:9px;color:#b06b58;background:#fff0e8;border-radius:999px;padding:5px 8px}.menuBody{padding-top:5px}.menu.collapsed .menuBody{display:none}.menu.collapsed{padding-bottom:8px}.label{font-size:10px;font-weight:950;color:#806d64;margin-bottom:7px}.count{font-size:9px;color:var(--muted);margin-top:7px}
 .details{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px;max-height:390px;overflow:auto;padding-right:2px}.item{border:1px solid #eee1d8;border-radius:15px;padding:6px;background:#fff}.itemTop{display:flex;gap:7px;align-items:center}.itemPhoto{width:64px;height:64px;flex:0 0 64px;border-radius:11px;overflow:hidden;background:#fff3eb}.itemPhoto img{width:100%;height:100%;object-fit:cover;display:block}.itemName{font-size:11px;font-weight:900;line-height:1.35}.item small{display:block;color:var(--muted);font-size:8px;margin-top:3px}.itemActions{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.tiny{border:0;background:#f8eee8;border-radius:8px;padding:5px 7px;font-size:8px;color:#76564b}.tiny.danger{color:#a34d47}
 .managerToggle{width:100%;margin-top:10px;border:1px dashed #e9cfc2;background:#fff7f2;color:#a95745;border-radius:13px;padding:10px;font-size:10px;font-weight:950;text-align:left}
 .managerBox{display:none!important;margin-top:9px;padding:10px;border:1px solid var(--line);border-radius:16px;background:#fff}.managerBox.show{display:block!important;animation:slide .18s ease}
@@ -48,8 +48,9 @@ button,input,select{font:inherit}.app{max-width:760px;margin:auto;padding:10px 1
       <div class="field"><label>口味</label><select id="tasteFilter"><option>随便</option><option>清淡</option><option>重口</option><option>酸辣</option><option>甜口</option></select></div>
     </div>
 
-    <div class="menu">
-      <div class="label">🎁 选择菜单</div>
+    <div class="menu" id="menuBox">
+      <button class="menuToggle" id="menuToggle" type="button"><span>🎁 选择菜单</span><span id="menuState">展开</span></button>
+      <div class="menuBody">
       <div class="sources"><button class="pill source on" data-source="system">系统菜单 <span id="systemCount"></span></button><button class="pill source" data-source="custom">我的菜单 <span id="customCount"></span></button></div>
       <div class="label" style="margin-top:11px">🍽️ 分类</div>
       <div class="cats" id="cats"></div>
@@ -69,6 +70,7 @@ button,input,select{font:inherit}.app{max-width:760px;margin:auto;padding:10px 1
         <div class="label" style="margin-top:10px">🗂️ 分类管理</div>
         <div class="managerGrid"><input id="newCat" placeholder="例如：我最爱吃"><button id="addCat" type="button">＋新增分类</button></div>
         <div id="catManager"></div>
+      </div>
       </div>
     </div>
     <button class="start" id="start" type="button">🎁 开始抽美食<small>中文菜名 · 对应图片 · 抽到什么吃什么</small></button>
@@ -176,19 +178,12 @@ function cartoonBox(f,kind){
  else if(k==="sea")d="<ellipse cx='320' cy='270' rx='170' ry='78' fill='#fff' stroke='"+p[1]+"' stroke-width='8'/><path d='M210 270q45-70 90 0t90 0t90 0' fill='none' stroke='"+p[1]+"' stroke-width='14' stroke-linecap='round'/><circle cx='255' cy='235' r='12' fill='#fff'/><circle cx='385' cy='235' r='12' fill='#fff'/>";
  else if(k==="meat")d="<ellipse cx='320' cy='280' rx='175' ry='70' fill='#fff' stroke='"+p[1]+"' stroke-width='8'/><path d='M215 270q45-70 90 0t90 0t90 0' fill='"+p[1]+"' opacity='.8'/><path d='M245 230l18-18m55 18l18-18m55 18l18-18' stroke='#fff' stroke-width='8' stroke-linecap='round'/>";
  else d="<ellipse cx='320' cy='275' rx='175' ry='72' fill='#fff' stroke='"+p[1]+"' stroke-width='8'/><path d='M210 265q55-80 110 0t110 0' fill='"+p[1]+"' opacity='.7'/><circle cx='275' cy='225' r='18' fill='#f4c76b'/><circle cx='365' cy='220' r='22' fill='#e78b6b'/>";
- const svg="<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 420' role='img' aria-label='"+n+"'><defs><linearGradient id='bg' x1='0' y1='0' x2='1' y2='1'><stop stop-color='"+p[0]+"'/><stop offset='1' stop-color='#fffaf7'/></linearGradient></defs><rect width='640' height='420' rx='30' fill='url(#bg)'/><text x='320' y='55' text-anchor='middle' font-family='sans-serif' font-size='26' font-weight='700' fill='#6f5147'>"+n+"</text>"+d+"<path d='M245 350Q320 375 395 350' fill='none' stroke='"+p[1]+"' stroke-width='8' stroke-linecap='round' opacity='.6'/></svg>";
+ const cue = /螺蛳粉|酸辣粉|米线|花甲粉/.test(f.n)?"酸辣·爽滑":/牛肉面|炸酱面|担担面|重庆小面|热干面/.test(f.n)?"劲道·浓香":/炒饭|卤肉饭|煲仔饭/.test(f.n)?"粒粒分明":/小龙虾|龙虾/.test(f.n)?"鲜香·多汁":/奶茶|奶绿|拿铁/.test(f.n)?"丝滑·浓郁":/蛋糕|千层|提拉米苏|泡芙|蛋挞/.test(f.n)?"绵密·香甜":/火锅/.test(f.n)?"热辣·鲜香":/烧烤|烤/.test(f.n)?"炭香·焦脆":/虾|蟹|生蚝|扇贝|鱿鱼|海鲜/.test(f.n)?"鲜嫩·多汁":/鸡|鸭|牛|羊|猪|肉|排骨/.test(f.n)?"鲜香·下饭":"热乎·诱人";
+ const svg="<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 420' role='img' aria-label='"+n+"'><defs><linearGradient id='bg' x1='0' y1='0' x2='1' y2='1'><stop stop-color='"+p[0]+"'/><stop offset='1' stop-color='#fffaf7'/></linearGradient></defs><rect width='640' height='420' rx='30' fill='url(#bg)'/><text x='320' y='55' text-anchor='middle' font-family='sans-serif' font-size='26' font-weight='800' fill='#6f5147'>"+n+"</text><text x='320' y='88' text-anchor='middle' font-family='sans-serif' font-size='15' font-weight='700' fill='"+p[1]+"'>"+cue+"</text>"+d+"<path d='M245 350Q320 375 395 350' fill='none' stroke='"+p[1]+"' stroke-width='8' stroke-linecap='round' opacity='.6'/></svg>";
  return "<div class='"+cls+" cartoonFood'>"+svg+"</div>";
 }
 function photoBox(f,kind){return cartoonBox(f,kind);}
-async function hydrate(container,foods){
-  if(!container)return;
-  await Promise.all(foods.map(async f=>{
-    const el=container.querySelector("[data-img-id='"+encodeURIComponent(f.id)+"']");
-    if(!el||el.querySelector("img"))return;
-    const u=await commonsImage(f);
-    if(u){el.innerHTML="<img src='"+esc(u)+"' alt='"+esc(f.n)+"' loading='lazy'>"}
-  }))
-}
+async function hydrate(){return}
 
 function render(){
   $("systemCount").textContent=systemFoods.length;
@@ -197,10 +192,10 @@ function render(){
   $("count").textContent="当前分类 "+list().length+" 道";
   // 菜单区域只展示分类；菜品图片只在抽取动画和最终结果中出现，避免页面铺满。
   $("details").innerHTML="";
-  document.querySelectorAll(".catbtn").forEach(b=>b.onclick=()=>{category=b.dataset.cat;render()});
+  document.querySelectorAll(".catbtn").forEach(b=>b.onclick=()=>{category=b.dataset.cat;render();$("menuBox").classList.add("collapsed");$("menuState").textContent="展开"});
   $("foodCat").innerHTML=activeCats().map(c=>"<option>"+esc(c)+"</option>").join("");
   $("catManager").innerHTML=activeCats().map((c,i)=>"<div class='catRow'><span>"+(catIcon[c]||"🍽️")+" "+esc(c)+" · "+activeFoods().filter(f=>f.cat===c).length+"道</span><button onclick='renameCat("+i+")' type='button'>改名</button><button onclick='deleteCat("+i+")' type='button'>删除</button></div>").join("");
-  hydrate($("details"),show);
+  hydrate();
   renderRecords();
 }
 
@@ -214,10 +209,66 @@ function uploadFoodImage(id,input){const file=input.files?.[0];if(!file)return;c
 function addCategory(){const n=$("newCat").value.trim();if(!n)return;if(activeCats().includes(n))return alert("分类已经存在");activeCats().push(n);$("newCat").value="";saveCats();render()}
 function addFood(){const n=$("foodName").value.trim(),c=$("foodCat").value;if(!n)return alert("请输入菜品名称");const file=$("foodFile").files[0];const f={id:(source==="system"?"s":"c")+Date.now(),n,cat:c,e:"🍽️",region:source==="system"?"自定义系统菜品":"我的菜单"};const done=()=>{if(source==="system")systemFoods.push(f);else customFoods.push(f);saveActive();$("foodName").value="";$("foodFile").value="";render()};if(file){const rd=new FileReader();rd.onload=()=>{f.img=rd.result;done()};rd.readAsDataURL(file)}else done()}
 
+function tastyDesc(f){
+  const n=f.n||"", cat=f.cat||"";
+  const exact={
+    "螺蛳粉":"酸辣开胃的灵魂汤底，米粉爽滑，酸笋、木耳和花生一层层叠上去，热气一起来就特别馋人。",
+    "兰州牛肉面":"清亮鲜香的牛骨汤配劲道手工面，薄牛肉片、香菜和辣油点在汤面上，热乎乎的一碗很治愈。",
+    "重庆小面":"麻、辣、鲜、香一起冲上来，劲道面条裹满红油和花椒香，越拌越香，特别适合想吃重口的时候。",
+    "热干面":"芝麻酱浓郁顺滑，裹住筋道面条，再撒上酸豆角和葱花，香气厚实又很有满足感。",
+    "炸酱面":"浓香炸酱裹着筋道面条，配黄瓜丝和豆芽，酱香、清脆和面香一起入口，越吃越过瘾。",
+    "蛋炒饭":"粒粒分明的米饭炒出锅气，蛋香和葱香扑鼻，入口松香不腻，是简单却很有满足感的一口。",
+    "煲仔饭":"米饭带着焦香锅巴，腊味或肉汁慢慢渗进米粒，揭盖的一瞬间香气特别足。",
+    "宫保鸡丁":"嫩鸡丁裹着微甜微辣的酱汁，花生米香脆，入口先鲜香后回甘，越嚼越香。",
+    "鱼香肉丝":"肉丝嫩滑，酱汁酸甜咸鲜又带一点辣，木耳和笋丝增加爽脆口感，特别下饭。",
+    "麻婆豆腐":"嫩豆腐吸满麻辣鲜香的红油酱汁，花椒香一上来就很有食欲，拌着米饭尤其过瘾。",
+    "红烧肉":"肥瘦相间的肉块炖到软糯，酱汁浓亮带着焦糖香，入口先香后化，满足感很强。",
+    "糖醋排骨":"排骨外层裹着亮亮的糖醋汁，酸甜开胃，肉香和酱香一起出来，特别容易一块接一块。",
+    "酸菜鱼":"嫩滑鱼片配酸爽开胃的汤底，酸菜香和辣椒香交织，汤一口下去就让人胃口打开。",
+    "北京烤鸭":"鸭皮烤得油亮酥脆，切片后蘸甜面酱、卷进薄饼和葱丝，酥香、咸甜和清脆层层叠加。",
+    "肉夹馍":"外皮酥香、馍里塞满卤得软烂的肉，肉汁慢慢浸进馍层，热乎乎咬下去特别满足。",
+    "生煎包":"底部煎得金黄酥脆，里面是滚烫肉馅和鲜香汤汁，咬开先听到脆响，再爆出肉汁。",
+    "小笼包":"薄皮包住鲜嫩肉馅和热汤，小心咬开先吸汤再吃馅，鲜香细腻又很过瘾。",
+    "臭豆腐":"外壳炸得焦脆，里面依旧柔嫩，配蒜汁、辣椒和香菜，闻着霸道，入口却特别香。",
+    "提拉米苏":"咖啡香和可可香交织，奶油慕斯细腻绵滑，入口微苦回甜，冰冰凉凉特别舒服。",
+    "草莓蛋糕":"松软蛋糕夹着轻盈奶油和酸甜草莓，奶香、果香一起散开，清甜又不容易腻。",
+    "芒果千层":"薄薄饼皮叠着细滑奶油和熟芒果，入口柔软香甜，果肉的清爽刚好压住奶油的厚重。",
+    "巧克力熔岩蛋糕":"外层温热松软，切开后浓郁巧克力缓缓流心，苦甜醇厚，适合想吃一口浓郁甜品的时候。",
+    "杨枝甘露":"芒果果肉的香甜配西柚微酸和西米的Q弹，冰凉清爽，奶香和果香特别搭。",
+    "黑糖珍珠奶茶":"黑糖焦香和奶香融合得很顺，珍珠Q弹有嚼劲，入口浓郁又带一点焦糖甜香。",
+    "芋泥奶茶":"细腻绵密的芋泥融进奶茶，奶香里带着温柔的芋头甜香，口感厚实又顺滑。",
+    "蜜桃乌龙奶茶":"清甜蜜桃香撞上乌龙茶的回甘，茶香不会太腻，冰冰喝起来特别清爽。",
+    "鲜榨橙汁":"现榨橙子的酸甜和清新果香很直接，冰凉入口，解腻又让人胃口一下清爽起来。",
+    "烤羊肉串":"炭火把羊肉边缘烤得微焦，孜然和辣椒香扑鼻，肉汁锁在里面，趁热吃最香。",
+    "烤鸡翅":"鸡皮烤得焦香微脆，里面肉汁丰盈，撒上孜然和辣椒面，越啃越香。",
+    "重庆火锅":"滚烫红油锅底翻着香气，毛肚、牛肉和蔬菜一涮就裹满麻辣汤香，热辣过瘾。",
+    "潮汕牛肉火锅":"清甜牛骨汤底突出牛肉本身的鲜味，现切牛肉涮到刚熟，嫩、鲜、甜，蘸沙茶尤其香。",
+    "小龙虾":"红亮虾壳裹着蒜香或麻辣酱汁，剥开就是鲜嫩虾肉，汤汁浓郁到让人忍不住吮手指。",
+    "蒜蓉生蚝":"肥嫩生蚝铺满金黄蒜蓉，蒜香经过烘烤后更浓，海味鲜甜又带着油香。",
+    "清蒸大闸蟹":"清蒸保留蟹肉本身的鲜甜，蟹黄细腻浓香，蘸一点姜醋更能提味。",
+    "豆浆油条":"温热豆浆香浓顺滑，油条外酥里松，掰一小段泡进豆浆里，咸香和豆香特别搭。",
+    "煎饼果子":"薄脆饼皮裹着鸡蛋、酱料和香脆配料，刚出锅热气十足，咸香酥脆很有满足感。",
+    "砂锅粥":"米粒熬到绵密开花，海鲜或肉类的鲜味慢慢融进粥里，热乎乎入口特别舒服。",
+    "西红柿炒鸡蛋":"酸甜番茄汁包住嫩滑鸡蛋，汤汁鲜亮又下饭，简单家常却特别容易吃光一碗饭。"
+  };
+  if(exact[n])return exact[n];
+  if(cat==="奶茶")return "茶香和奶香交织，入口顺滑，配料带来一点Q弹或绵密口感，适合想喝一杯甜甜的、放松一下的时候。";
+  if(cat==="饮品")return "冰凉清爽，果香或茶香在入口散开，酸甜感轻盈，很适合给一顿饭解腻。";
+  if(cat==="甜品")return "奶香、果香或可可香层层展开，口感细腻柔软，甜度带着满足感，冰凉吃起来尤其舒服。";
+  if(cat==="烧烤")return "炭火香先扑上来，表面带着微焦焦香，肉汁和调味料一起爆开，趁热吃最有感觉。";
+  if(cat==="海鲜")return "鲜味十足，食材本身的清甜配上蒜香、椒盐或酱汁，入口鲜嫩多汁，很适合解馋。";
+  if(cat==="火锅")return "锅底滚起来香气立刻起来，食材现涮现吃，外层裹满汤汁，热乎乎的一口特别过瘾。";
+  if(cat==="小吃")return "外层带着酥、脆或焦香，里面柔软多汁，趁热入口最香，属于很容易越吃越馋的那一类。";
+  if(cat==="早餐")return "热气腾腾、香味扑鼻，口感软糯或酥脆交替，简单的一口就能把胃口叫醒。";
+  if(cat==="夜宵")return "香气浓、味道足，热乎乎端上桌就很有夜宵氛围，适合嘴馋的时候来一份解解馋。";
+  if(cat==="家常菜")return "锅气和酱香很足，咸香鲜美、特别下饭，是那种看起来家常，吃起来却很满足的一盘。";
+  if(cat==="正餐")return "热菜刚出锅香气最足，酱汁裹着食材，鲜香和锅气一起入口，配米饭吃尤其满足。";
+  return "热乎乎端上桌，香气扑面而来，入口层次丰富，适合今晚想认真吃一顿的时候。";
+}
 async function showResult(f){
   current=f;const s=score(f);
   $("resultCat").textContent=(catIcon[f.cat]||"🍽️")+" "+f.cat;$("resultName").textContent=f.n;
-  $("resultDesc").textContent=f.n+"，这是一道"+f.cat+"美食，适合"+(f.region&&f.region!=="全国"?f.region+"风味":"今晚")+"想吃这一口的时候直接决定。";
+  $("resultDesc").textContent=tastyDesc(f);
   $("recommend").textContent=s.r+"/5";$("taste").textContent=s.t+"/5";$("resultRegion").textContent="📍 "+(f.region||"我的菜单")+" · "+f.cat;
   $("resultPhoto").innerHTML=photoBox(f,"result");$("result").classList.add("show");
   celebrate();
@@ -238,7 +289,7 @@ function draw(){
   const tr=$("track");tr.style.transition="none";tr.style.transform="translateX(0)";drawSound();
   requestAnimationFrame(()=>{tr.style.transition="transform 2.5s cubic-bezier(.1,.8,.15,1)";tr.style.transform="translateX(-"+(11*133-66)+"px)"});
   setTimeout(()=>{$("drawTitle").textContent="✨ 决定好了！";showResult(winner);history.push({...winner});history=history.slice(-30);save("food_hist_v5",history);renderRecords()},2650);
-  hydrate($("track"),seq);
+  hydrate();
 }
 
 function renderRecords(){
@@ -246,7 +297,7 @@ function renderRecords(){
   $("favTab").classList.toggle("on",recordMode==="fav");$("histTab").classList.toggle("on",recordMode==="hist");
   $("records").innerHTML=arr.length?arr.slice().reverse().map((f,i)=>"<div class='row'>"+photoBox(f,"row")+"<div class='rowMain'><b>"+esc(f.n)+"</b><small>"+esc(f.cat)+" · "+esc(f.region||"我的菜单")+"</small></div><button data-remove='"+esc(f.n)+"'>删除</button></div>").join(""):"<div class='empty'>这里还没有内容</div>";
   document.querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>removeRecord(b.dataset.remove));
-  hydrate($("records"),arr.slice().reverse());
+  hydrate();
 }
 function removeRecord(name){if(recordMode==="fav"){favorites=favorites.filter(f=>f.n!==name);save("food_fav_v5",favorites)}else{const idx=history.findIndex(f=>f.n===name);if(idx>=0)history.splice(idx,1);save("food_hist_v5",history)}renderRecords()}
 function clearRecords(){if(!confirm("确定清空当前列表？"))return;if(recordMode==="fav"){favorites=[];save("food_fav_v5",favorites)}else{history=[];save("food_hist_v5",history)}renderRecords()}
@@ -254,6 +305,7 @@ function clearRecords(){if(!confirm("确定清空当前列表？"))return;if(rec
 document.querySelectorAll(".mood").forEach(b=>b.onclick=()=>{document.querySelectorAll(".mood").forEach(x=>x.classList.remove("on"));b.classList.add("on")});
 document.querySelectorAll(".source").forEach(b=>b.onclick=()=>{source=b.dataset.source;category="全部";render()});
 $("managerToggle").onclick=()=>{$("managerBox").classList.toggle("show")};
+$("menuToggle").onclick=()=>{const m=$("menuBox");m.classList.toggle("collapsed");$("menuState").textContent=m.classList.contains("collapsed")?"展开":"收起"};
 $("start").onclick=draw;$("again").onclick=draw;$("addFood").onclick=addFood;$("addCat").onclick=addCategory;
 $("like").onclick=()=>{if(!current)return;if(!favorites.some(x=>x.n===current.n)){favorites.push({...current});save("food_fav_v5",favorites)}$("like").textContent="💖 已收藏";renderRecords()};
 $("favTab").onclick=()=>{recordMode="fav";renderRecords()};$("histTab").onclick=()=>{recordMode="hist";renderRecords()};$("clearRecords").onclick=clearRecords;
@@ -262,7 +314,7 @@ $("musicBtn").onclick=()=>$("musicPanel").classList.toggle("show");
 document.querySelectorAll("[data-mood]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-mood]").forEach(x=>x.classList.remove("on"));b.classList.add("on");startMusic(b.dataset.mood)});
 $("musicFile").onchange=e=>{const f=e.target.files?.[0];if(!f)return;if(!userAudio)userAudio=new Audio();userAudio.src=URL.createObjectURL(f);userAudio.loop=true;userAudio.volume=.42;userAudio.play().then(()=>{$("musicBtn").classList.add("on");$("musicBtn").textContent="♫";$("musicPanel").classList.remove("show")}).catch(()=>alert("请先点击右上角音乐圆圈，再选择音乐"))};
 
-try{render();renderRecords()}catch(e){console.error(e);$("details").innerHTML="<div class='empty' style='grid-column:1/-1'>正在恢复数据，请刷新一次页面。</div>"}
+try{render();renderRecords();$("menuBox").classList.add("collapsed");$("menuState").textContent="展开";$("managerBox").classList.remove("show")}catch(e){console.error(e);$("details").innerHTML="<div class='empty' style='grid-column:1/-1'>正在恢复数据，请刷新一次页面。</div>"}
 </script>
 </body>
 </html>
