@@ -183,7 +183,7 @@ function cartoonBox(f,kind){
  return "<div class='"+cls+" cartoonFood' data-food-id='"+esc(f.id)+"'>"+svg+"</div>";
 }
 function photoBox(f,kind){return cartoonBox(f,kind);}
-async function hydrate(){return}
+async function hydrate(){const nodes=document.querySelectorAll("[data-food-id]");for(const node of nodes){const f=systemFoods.find(x=>x.id===node.dataset.foodId)||customFoods.find(x=>x.id===node.dataset.foodId);if(!f||f.img||node.dataset.done)continue;try{const u="https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch="+encodeURIComponent(f.n)+"&gsrnamespace=6&gsrlimit=8&prop=imageinfo&iiprop=url|mime&iiurlwidth=900&format=json&origin=*";const j=await (await fetch(u)).json();const pages=Object.values(j.query?.pages||{});const norm=f.n.replace(/[·・\\s_-]/g,"");const hit=pages.find(p=>{const t=(p.title||"").replace(/^File:/,"").replace(/[·・\\s_-]/g,"");return t.includes(norm)&&p.imageinfo?.[0]?.mime?.startsWith("image/")});const img=hit?.imageinfo?.[0]?.thumburl||hit?.imageinfo?.[0]?.url;if(img){const im=document.createElement("img");im.src=img;im.alt=f.n;im.loading="lazy";im.referrerPolicy="no-referrer";node.innerHTML="";node.appendChild(im)}}catch(e){}node.dataset.done="1"}}
 
 function render(){
   $("systemCount").textContent=systemFoods.length;
