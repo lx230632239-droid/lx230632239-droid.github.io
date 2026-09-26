@@ -210,6 +210,7 @@ function addCategory(){const n=$("newCat").value.trim();if(!n)return;if(activeCa
 function addFood(){const n=$("foodName").value.trim(),c=$("foodCat").value;if(!n)return alert("请输入菜品名称");const file=$("foodFile").files[0];const f={id:(source==="system"?"s":"c")+Date.now(),n,cat:c,e:"🍽️",region:source==="system"?"自定义系统菜品":"我的菜单"};const done=()=>{if(source==="system")systemFoods.push(f);else customFoods.push(f);saveActive();$("foodName").value="";$("foodFile").value="";render()};if(file){const rd=new FileReader();rd.onload=()=>{f.img=rd.result;done()};rd.readAsDataURL(file)}else done()}
 
 function foodStory(f){return "这道菜来自"+(f.region||"中国")+"，承载着当地的饮食习惯与生活烟火气。"}
+function foodStory(f){return "这道菜来自"+(f.region||"中国")+"，承载着当地的饮食习惯与生活烟火气。"}
 function tastyDesc(f){
   const n=f.n||"", cat=f.cat||"";
   const exact={
