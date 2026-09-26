@@ -20,11 +20,11 @@ button,input,select{font:inherit}.app{max-width:760px;margin:auto;padding:10px 1
 .menu{margin-top:10px;padding:11px;border:1px solid #f0e2d9;border-radius:17px;background:#fffaf7}.label{font-size:10px;font-weight:950;color:#806d64;margin-bottom:7px}.count{font-size:9px;color:var(--muted);margin-top:7px}
 .details{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px;max-height:390px;overflow:auto;padding-right:2px}.item{border:1px solid #eee1d8;border-radius:15px;padding:6px;background:#fff}.itemTop{display:flex;gap:7px;align-items:center}.itemPhoto{width:64px;height:64px;flex:0 0 64px;border-radius:11px;overflow:hidden;background:#fff3eb}.itemPhoto img{width:100%;height:100%;object-fit:cover;display:block}.itemName{font-size:11px;font-weight:900;line-height:1.35}.item small{display:block;color:var(--muted);font-size:8px;margin-top:3px}.itemActions{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.tiny{border:0;background:#f8eee8;border-radius:8px;padding:5px 7px;font-size:8px;color:#76564b}.tiny.danger{color:#a34d47}
 .managerToggle{width:100%;margin-top:10px;border:1px dashed #e9cfc2;background:#fff7f2;color:#a95745;border-radius:13px;padding:10px;font-size:10px;font-weight:950;text-align:left}
-.managerBox{display:none;margin-top:9px;padding:10px;border:1px solid var(--line);border-radius:16px;background:#fff}.managerBox.show{display:block;animation:slide .18s ease}
+.managerBox{display:none!important;margin-top:9px;padding:10px;border:1px solid var(--line);border-radius:16px;background:#fff}.managerBox.show{display:block!important;animation:slide .18s ease}
 .managerGrid{display:grid;grid-template-columns:1fr 110px;gap:6px}.managerGrid input,.managerGrid select{width:100%;height:36px;border:1px solid var(--line);border-radius:10px;padding:0 8px;font-size:10px;background:#fff}.managerGrid .wide{grid-column:1/-1}.managerGrid button{height:36px;border:0;border-radius:10px;background:var(--soft);color:#a95745;font-weight:950;font-size:10px}
 .uploadTip{font-size:8px;color:var(--muted);line-height:1.5;margin-top:6px}.catManager{margin-top:8px}.catRow{display:flex;gap:5px;align-items:center;padding:5px 0;border-bottom:1px dashed #eee1d8}.catRow span{flex:1;font-size:9px}.catRow button{border:0;background:#f8eee8;border-radius:7px;padding:5px;font-size:8px;color:#76564b}
 .start{width:100%;margin-top:11px;border:0;border-radius:16px;padding:14px;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;font-size:16px;font-weight:950;box-shadow:0 8px 18px #e8786928}.start small{display:block;font-size:9px;margin-top:3px;font-weight:500}
-.musicBtn{position:fixed;right:14px;top:14px;z-index:80;width:44px;height:44px;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(48,35,30,.94);color:#fff;font-size:19px;box-shadow:0 6px 20px #0003}.musicBtn.on{background:#d86f69}
+.musicBtn{position:fixed;right:14px;top:14px;z-index:80;width:42px;height:42px;border:2px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(48,35,30,.94);color:#fff;font-size:19px;box-shadow:0 6px 20px #0003}.musicBtn.on{background:#d86f69}
 .musicPanel{display:none;position:fixed;right:12px;top:64px;z-index:81;width:205px;background:rgba(255,252,249,.98);border:1px solid var(--line);border-radius:17px;padding:11px;box-shadow:0 12px 35px #0002}.musicPanel.show{display:block;animation:pop .18s ease}.musicPanel h4{margin:0 0 8px;font-size:11px}.musicModes{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.musicPanel button{border:0;border-radius:9px;background:#f8eee8;color:#76564b;padding:7px 2px;font-size:9px;font-weight:900}.musicPanel button.on{background:#d86f69;color:#fff}.musicUpload{margin-top:7px;width:100%;display:block;text-align:center;background:#f8eee8;border-radius:9px;padding:7px;font-size:9px;color:#76564b}.musicUpload input{display:none}.musicHint{font-size:8px;color:var(--muted);line-height:1.5;margin-top:5px}
 .draw{display:none;margin-top:12px;padding:12px;text-align:center}.draw.show{display:block}.drawTitle{font-weight:950;font-size:14px;margin-bottom:8px}.trackBox{position:relative;height:150px;overflow:hidden;border-radius:18px;background:#fff8f3}.track{height:100%;display:flex;align-items:center;gap:9px;will-change:transform}.trackBox:before{content:"";position:absolute;z-index:4;left:50%;top:0;bottom:0;width:3px;background:var(--accent);transform:translateX(-50%);box-shadow:0 0 12px var(--accent)}.mini{flex:0 0 124px;height:125px;background:#fff;border:1px solid var(--line);border-radius:15px;overflow:hidden;box-shadow:0 5px 12px #0000000b}.miniPhoto{height:88px;background:#fff3eb}.miniPhoto img{width:100%;height:100%;object-fit:cover;display:block}.mini b{display:block;font-size:10px;padding:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .result{display:none;margin-top:12px;overflow:hidden}.result.show{display:block;animation:pop .45s ease}.resultPhoto{height:300px;background:#fff3eb;position:relative}.resultPhoto img{width:100%;height:100%;object-fit:cover;display:block}.resultPhoto .photoLoading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#b08e80;font-size:11px}.info{padding:16px}.tag{font-size:10px;color:#bd6952;font-weight:950}.name{font-size:30px;font-weight:950;margin-top:5px}.desc{font-size:12px;color:#776961;line-height:1.7;margin:8px 0}.scoreBox{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.score{background:#fff7f1;border:1px solid #f0e2d9;border-radius:13px;padding:10px}.score strong{display:block;font-size:18px}.score span{font-size:9px;color:#9b867c}.region{background:#fff7f1;border:1px solid #f0e2d9;border-radius:12px;padding:10px;font-size:10px;line-height:1.6}.actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:10px}.actions button{border:0;border-radius:12px;padding:11px 5px;font-size:10px;font-weight:950}.again{background:var(--ink);color:#fff}.like{background:#fff0f2;color:#b15c6c}.share{background:#fff4e8;color:#9a674e}
@@ -65,7 +65,7 @@ button,input,select{font:inherit}.app{max-width:760px;margin:auto;padding:10px 1
           <input id="foodFile" class="wide" type="file" accept="image/*">
           <button id="addFood" type="button">＋添加菜品</button>
         </div>
-        <div class="uploadTip">📷 可从手机相册给菜品上传真实照片；上传后优先使用你的照片。没有上传时，系统会自动从 Wikimedia Commons 搜索对应菜品图片，找不到才显示备用卡片。</div>
+        <div class="uploadTip">📷 可从手机相册给菜品上传真实照片；上传后优先使用你的照片。系统菜品统一使用清爽的动漫卡通美食图；你也可以给自己的菜品上传照片。</div>
         <div class="label" style="margin-top:10px">🗂️ 分类管理</div>
         <div class="managerGrid"><input id="newCat" placeholder="例如：我最爱吃"><button id="addCat" type="button">＋新增分类</button></div>
         <div id="catManager"></div>
@@ -162,11 +162,31 @@ async function commonsImage(f){
   return "";
 }
 
-function photoBox(f,kind){
-  const cls=kind==="result"?"resultPhoto":kind==="mini"?"miniPhoto":kind==="row"?"rowPhoto":"itemPhoto";
-  const key=encodeURIComponent(f.id);
-  return "<div class='"+cls+"' data-img-id='"+key+"'>"+(f.img?"<img src='"+esc(f.img)+"' alt='"+esc(f.n)+"'>":placeholder(f))+"</div>"
+function cartoonIcon(f){
+  const n=f.n||"美食";
+  if(/奶茶|奶绿|拿铁/.test(n)) return "🧋";
+  if(/蛋糕|蛋挞|泡芙|千层|布丁|冰淇淋|提拉米苏|双皮奶|杨枝甘露|芋圆/.test(n)) return "🍰";
+  if(/火锅/.test(n)) return "🍲";
+  if(/小龙虾|龙虾|生蚝|皮皮虾|螃蟹|大闸蟹|虾|鱼|鱿鱼|扇贝|花甲|海鲜/.test(n)) return "🦐";
+  if(/烧烤|烤|串|炸串/.test(n)) return "🍢";
+  if(/面|粉|米线/.test(n)) return "🍜";
+  if(/饭|煲仔/.test(n)) return "🍚";
+  if(/饺|包|烧麦|锅贴|肠粉|饭团|煎饼|灌饼|手抓饼/.test(n)) return "🥟";
+  if(/鸡|鸭/.test(n)) return /鸭/.test(n)?"🦆":"🍗";
+  if(/牛|羊|猪|肉|排骨|狮子头/.test(n)) return "🥩";
+  if(/豆浆|油条|早餐|粥|鸡蛋|胡辣汤/.test(n)) return "🥞";
+  if(/果汁|气泡|茶|饮|酸梅汤|柠檬/.test(n)) return "🥤";
+  return "🍽️";
 }
+function cartoonBox(f,kind){
+  const cls=kind==="result"?"resultPhoto":kind==="mini"?"miniPhoto":kind==="row"?"rowPhoto":"itemPhoto";
+  const icon=cartoonIcon(f);
+  const palette=["#FFE3D4","#DDF3FF","#FFF0B8","#E7E1FF","#DDF7E7"];
+  const bg=palette[Math.abs(String(f.id||f.n).split("").reduce((a,c)=>a+c.charCodeAt(0),0))%palette.length];
+  const svg="<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 420' role='img' aria-label='"+esc(f.n)+"'><defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='1'><stop stop-color='"+bg+"'/><stop offset='1' stop-color='#fffaf6'/></linearGradient></defs><rect width='640' height='420' rx='34' fill='url(#g)'/><circle cx='82' cy='70' r='42' fill='#fff' opacity='.45'/><circle cx='560' cy='95' r='62' fill='#fff' opacity='.32'/><ellipse cx='320' cy='306' rx='190' ry='35' fill='#D7B9A7' opacity='.25'/><circle cx='320' cy='218' r='122' fill='#fff' stroke='#E5C7B6' stroke-width='7'/><text x='320' y='258' text-anchor='middle' font-size='128'>"+icon+"</text><text x='320' y='52' text-anchor='middle' font-family='sans-serif' font-size='25' font-weight='700' fill='#76564b'>"+esc(f.n)+"</text><path d='M190 338 Q320 370 450 338' fill='none' stroke='#E99A7B' stroke-width='7' stroke-linecap='round'/></svg>";
+  return "<div class='"+cls+" cartoonFood' data-cartoon='1'>"+svg+"</div>";
+}
+function photoBox(f,kind){ return cartoonBox(f,kind); }
 async function hydrate(container,foods){
   if(!container)return;
   await Promise.all(foods.map(async f=>{
@@ -214,9 +234,19 @@ async function showResult(f){
   celebrate();
 }
 
-let musicMode="warm",audioCtx=null,musicTimer=null,userAudio=null,musicOn=false;
-function tone(freq,dur,type="sine"){if(!audioCtx||!musicOn)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(.0001,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.028,audioCtx.currentTime+.02);g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+dur);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+dur+.03)}
-function startMusic(mode=musicMode){musicMode=mode;if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==="suspended")audioCtx.resume();if(userAudio){userAudio.pause();userAudio=null}musicOn=true;$("musicBtn").classList.add("on");$("musicBtn").textContent="♫";clearInterval(musicTimer);const p={warm:[262,330,392,523,392,330],happy:[392,440,523,659,784,659,523,440],food:[220,262,330,392,330,262,196,262]}[musicMode],t={warm:620,happy:360,food:470}[musicMode];let i=0;musicTimer=setInterval(()=>{const n=p[i++%p.length];tone(n,.25,"triangle");tone(n*1.25,.13,"sine")},t)}
+let musicMode="food",audioCtx=null,musicTimer=null,userAudio=null,musicOn=false;
+function tone(freq,dur,type="sine",gain=.014){
+  if(!audioCtx||!musicOn)return;
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type;o.frequency.value=freq;
+  g.gain.setValueAtTime(.0001,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(gain,audioCtx.currentTime+.05);g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+dur);
+  o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+dur+.05);
+}
+function startMusic(mode=musicMode){
+  musicMode=mode;if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==="suspended")audioCtx.resume();
+  if(userAudio){userAudio.pause();userAudio=null}musicOn=true;$("musicBtn").classList.add("on");$("musicBtn").textContent="♫";clearInterval(musicTimer);
+  const p={warm:[392,440,523,587,659,587,523,440],happy:[523,587,659,784,880,784,659,587],food:[330,392,440,523,587,523,440,392]}[musicMode]||[330,392,440,523,587,523,440,392];
+  let i=0;musicTimer=setInterval(()=>{const n=p[i++%p.length];tone(n,.42,"sine",.014);if(i%4===0)tone(n/2,.7,"triangle",.007)},520);
+}
 function drawSound(){if(!audioCtx||!musicOn)return;[523,659,784].forEach((n,i)=>setTimeout(()=>tone(n,.11,"triangle"),i*70))}
 function winSound(){if(!audioCtx||!musicOn)return;[659,784,988,1318].forEach((n,i)=>setTimeout(()=>tone(n,.13),i*70))}
 function celebrate(){winSound();for(let i=0;i<28;i++){const e=document.createElement("i");e.className="confetti";e.style.left=(10+Math.random()*80)+"vw";e.style.setProperty("--x",(Math.random()*180-90)+"px");e.style.animationDelay=(Math.random()*.3)+"s";document.body.appendChild(e);setTimeout(()=>e.remove(),2100)}for(let i=0;i<14;i++){const e=document.createElement("i");e.className="fire";e.style.setProperty("--x",(Math.random()*280-140)+"px");e.style.setProperty("--y",(Math.random()*240-120)+"px");document.body.appendChild(e);setTimeout(()=>e.remove(),1000)}}
