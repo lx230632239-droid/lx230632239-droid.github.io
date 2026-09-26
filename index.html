@@ -230,7 +230,6 @@ async function showResult(f){
   $("resultDesc").textContent=f.n+"，这是一道"+f.cat+"美食，适合"+(f.region&&f.region!=="全国"?f.region+"风味":"今晚")+"想吃这一口的时候直接决定。";
   $("recommend").textContent=s.r+"/5";$("taste").textContent=s.t+"/5";$("resultRegion").textContent="📍 "+(f.region||"我的菜单")+" · "+f.cat;
   $("resultPhoto").innerHTML=photoBox(f,"result");$("result").classList.add("show");
-  const u=await commonsImage(f);if(u&&$("resultPhoto"))$("resultPhoto").innerHTML="<img src='"+esc(u)+"' alt='"+esc(f.n)+"'>";
   celebrate();
 }
 
