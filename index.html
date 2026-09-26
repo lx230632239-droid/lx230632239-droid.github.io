@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>大转盘</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}
+body{background:#fff7f9;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#ffe8ef,#fff3f7)}
+.wrap{position:relative;width:320px;height:320px}
+#wheel{width:100%;height:100%;border-radius:50%;transition:4s cubic-bezier(0.17,0.67,0.13,0.99);box-shadow:0 0 20px #ffb8c8}
+.pointer{width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-top:36px solid #ff4b77;position:absolute;top:-12px;left:50%;transform:translateX(-50%);z-index:9}
+#btn{margin-top:32px;padding:14px 42px;border:none;border-radius:99px;background:#ff6b8b;color:white;font-size:18px;font-weight:bold;box-shadow:0 4px 12px #ffb2c4}
+#btn:active{scale:0.96}
+#result{margin-top:20px;font-size:22px;color:#c4385e;font-weight:bold}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="pointer"></div>
+<canvas id="wheel"></canvas>
+</div>
+<button id="btn">开始转动</button>
+<div id="result"></div>
+<script>
+const canvas=document.getElementById("wheel");
+const ctx=canvas.getContext("2d");
+canvas.width=320;canvas.height=320;
+const list=["火锅","烧烤","奶茶","米饭","麻辣烫","烤肉","螺蛳粉","炸鸡"];
+const colors=["#ffd6e0","#ffe6ed","#ffdce7","#ffeef4","#ffd6e0","#ffe6ed","#ffdce7","#ffeef4"];
+let startAngle=0;
+const rad=Math.PI*2/list.length;
+function draw(){
+ctx.clearRect(0,0,320,320);
+for(let i=0;i<list.length;i++){
+ctx.beginPath();
+ctx.fillStyle=colors[i];
+ctx.moveTo(160,160);
+ctx.arc(160,160,160,startAngle+i*rad,startAngle+(i+1)*rad);
+ctx.lineTo(160,160);
+ctx.fill();
+ctx.save();
+ctx.translate(160,160);
+ctx.rotate(startAngle+i*rad+rad/2);
+ctx.fillStyle="#992b48";
+ctx.font="16px system-ui";
+ctx.textAlign="right";
+ctx.fillText(list[i],140,5);
+ctx.restore();
+}
+}
+draw();
+let spinning=false;
+document.getElementById("btn").onclick=()=>{
+if(spinning) return;
+spinning=true;
+const ran=Math.floor(Math.random()*list.length);
+const target=startAngle+360*8+(ran*rad);
+startAngle=target;
+wheel.style.transform=`rotate(${startAngle}rad)`;
+setTimeout(()=>{
+document.getElementById("result").innerText=`选中：${list[ran]}`;
+spinning=false;
+},4000)
+}
+</script>
+</body>
+</html>
