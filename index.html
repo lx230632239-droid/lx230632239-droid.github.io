@@ -180,7 +180,7 @@ function cartoonBox(f,kind){
  else d="<ellipse cx='320' cy='275' rx='175' ry='72' fill='#fff' stroke='"+p[1]+"' stroke-width='8'/><path d='M210 265q55-80 110 0t110 0' fill='"+p[1]+"' opacity='.7'/><circle cx='275' cy='225' r='18' fill='#f4c76b'/><circle cx='365' cy='220' r='22' fill='#e78b6b'/>";
  const cue = /螺蛳粉|酸辣粉|米线|花甲粉/.test(f.n)?"酸辣·爽滑":/牛肉面|炸酱面|担担面|重庆小面|热干面/.test(f.n)?"劲道·浓香":/炒饭|卤肉饭|煲仔饭/.test(f.n)?"粒粒分明":/小龙虾|龙虾/.test(f.n)?"鲜香·多汁":/奶茶|奶绿|拿铁/.test(f.n)?"丝滑·浓郁":/蛋糕|千层|提拉米苏|泡芙|蛋挞/.test(f.n)?"绵密·香甜":/火锅/.test(f.n)?"热辣·鲜香":/烧烤|烤/.test(f.n)?"炭香·焦脆":/虾|蟹|生蚝|扇贝|鱿鱼|海鲜/.test(f.n)?"鲜嫩·多汁":/鸡|鸭|牛|羊|猪|肉|排骨/.test(f.n)?"鲜香·下饭":"热乎·诱人";
  const svg="<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 420' role='img' aria-label='"+n+"'><defs><linearGradient id='bg' x1='0' y1='0' x2='1' y2='1'><stop stop-color='"+p[0]+"'/><stop offset='1' stop-color='#fffaf7'/></linearGradient></defs><rect width='640' height='420' rx='30' fill='url(#bg)'/><text x='320' y='55' text-anchor='middle' font-family='sans-serif' font-size='26' font-weight='800' fill='#6f5147'>"+n+"</text><text x='320' y='88' text-anchor='middle' font-family='sans-serif' font-size='15' font-weight='700' fill='"+p[1]+"'>"+cue+"</text>"+d+"<path d='M245 350Q320 375 395 350' fill='none' stroke='"+p[1]+"' stroke-width='8' stroke-linecap='round' opacity='.6'/></svg>";
- return "<div class='"+cls+" cartoonFood'>"+svg+"</div>";
+ return "<div class='"+cls+" cartoonFood' data-food-id='"+esc(f.id)+"'>"+svg+"</div>";
 }
 function photoBox(f,kind){return cartoonBox(f,kind);}
 async function hydrate(){return}
