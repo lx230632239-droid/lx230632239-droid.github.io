@@ -271,7 +271,7 @@ async function showResult(f){
   current=f;const s=score(f);
   $("resultCat").textContent=(catIcon[f.cat]||"🍽️")+" "+f.cat;$("resultName").textContent=f.n;
   $("resultDesc").textContent=tastyDesc(f);
-  $("recommend").textContent=s.r+"/5";$("taste").textContent=s.t+"/5";$("resultRegion").textContent="📍 "+(f.region||"我的菜单")+" · "+f.cat;
+  $("recommend").textContent=s.r+"/5";$("taste").textContent=s.t+"/5";$("resultRegion").innerHTML="📍 <b>地点：</b>"+esc(f.region||"我的菜单")+"<br>📖 <b>故事：</b>"+esc(foodStory(f))+"<br>🍴 <b>点评：</b>"+esc(tastyDesc(f));
   $("resultPhoto").innerHTML=photoBox(f,"result");$("result").classList.add("show");
   celebrate();
 }
