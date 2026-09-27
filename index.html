@@ -110,25 +110,79 @@ const state={platform:"all",budget:"all",category:"all",people:"all",current:nul
 function $(id){return document.getElementById(id)}
 function bindChips(id,key){document.querySelectorAll("#"+id+" .chip").forEach(b=>b.onclick=()=>{document.querySelectorAll("#"+id+" .chip").forEach(x=>x.classList.remove("active"));b.classList.add("active");state[key]=b.dataset.v})}
 bindChips("platform","platform");bindChips("budget","budget");bindChips("category","category");bindChips("people","people");
+let locationWatchId=null;
+let locationTimer=null;
+let lastReverseAt=0;
+let lastReverseLat=null,lastReverseLng=null;
+
+function metersBetween(a,b,c,d){
+ const R=6371000,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,z=Math.sin(x/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2;
+ return R*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z));
+}
+
+async function reverseLocation(lat,lng,accuracy){
+ try{
+  const r=await fetch(WORKER+"/location?lat="+encodeURIComponent(lat)+"&lng="+encodeURIComponent(lng),{cache:"no-store"});
+  const j=await r.json();
+  if(!r.ok||!j.ok) throw new Error(j.error||"当前位置解析失败");
+  j.latitude=lat;j.longitude=lng;j.accuracy=accuracy;
+  state.location=j;
+  const parts=[j.region,j.city,j.district,j.street,j.houseNumber].filter(Boolean);
+  const address=parts.join(" · ");
+  const acc=Math.round(accuracy||0);
+  const level=acc<=20?"高精度":acc<=50?"较高精度":acc<=100?"普通精度":"定位信号较弱";
+  $("locationText").innerHTML=(address||j.displayName||"已获取当前位置")+"<br><span style="font-size:11px;color:#8f8179">📍 实时GPS · 精度约 "+acc+" 米 · "+level+"</span>";
+  $("status").textContent=acc<=50?"GPS已连接 · 实时精准定位":"GPS已连接 · 正在提高定位精度…";
+  await checkDeliverySource();
+  return j;
+ }catch(e){
+  $("locationText").innerHTML="已取得GPS坐标，但详细地址解析暂时失败<br><span style="font-size:11px;color:#8f8179">📍 实时GPS · 精度约 "+Math.round(accuracy||0)+" 米</span>";
+  state.location={latitude:lat,longitude:lng,accuracy};
+  await checkDeliverySource();
+  return state.location;
+ }
+}
+
 async function getLocation(){
-  const btn=$("locateBtn");
-  if(!navigator.geolocation){$("locationText").textContent="当前浏览器不支持手机定位";return null}
-  if(btn){btn.disabled=true;btn.textContent="📍 正在定位…"}
-  try{
-    const pos=await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:20000,maximumAge:0}));
-    const lat=pos.coords.latitude,lng=pos.coords.longitude;
-    const r=await fetch(WORKER+"/location?lat="+encodeURIComponent(lat)+"&lng="+encodeURIComponent(lng),{cache:"no-store"});
-    const j=await r.json(); if(!r.ok||!j.ok) throw new Error(j.error||"当前位置解析失败");
-    state.location=j;
-    const label=[j.city,j.district,j.region].filter(Boolean).join(" · ");
-    $("locationText").textContent=(label||"已获取当前位置")+" · 手机GPS";
-    $("status").textContent="已定位，正在检查外卖源…";
-    await checkDeliverySource(); return j;
-  }catch(e){
-    const c=e&&e.code;
-    $("locationText").textContent=c===1?"请允许浏览器使用位置权限":c===2?"暂时无法获取当前位置":c===3?"定位超时，请重试":"当前位置获取失败";
-    return null;
-  }finally{if(btn){btn.disabled=false;btn.textContent="📍 重新获取当前位置"}}
+ const btn=$("locateBtn");
+ if(!navigator.geolocation){$("locationText").textContent="当前浏览器不支持手机定位";return null}
+ if(locationWatchId!==null){navigator.geolocation.clearWatch(locationWatchId);locationWatchId=null}
+ if(locationTimer)clearTimeout(locationTimer);
+ if(btn){btn.disabled=true;btn.textContent="📍 正在获取高精度位置…"}
+ $("locationText").innerHTML="正在搜索卫星/GPS与手机定位信号…<br><span style="font-size:11px;color:#8f8179">请保持手机定位开启</span>";
+ let best=null,finished=false;
+ const finish=async()=>{
+  if(finished)return; finished=true;
+  if(locationTimer)clearTimeout(locationTimer);
+  if(locationWatchId!==null){navigator.geolocation.clearWatch(locationWatchId);locationWatchId=null}
+  if(best) await reverseLocation(best.coords.latitude,best.coords.longitude,best.coords.accuracy);
+  if(btn){btn.disabled=false;btn.textContent="📍 重新获取当前位置"}
+ };
+ const success=async pos=>{
+  const acc=Number(pos.coords.accuracy)||999999;
+  if(!best||acc<best.coords.accuracy)best=pos;
+  const lat=pos.coords.latitude,lng=pos.coords.longitude;
+  const now=Date.now();
+  $("locationText").innerHTML="正在获取高精度位置…<br><span style="font-size:11px;color:#8f8179">📍 当前GPS精度约 "+Math.round(acc)+" 米</span>";
+  if(!lastReverseLat||metersBetween(lastReverseLat,lastReverseLng,lat,lng)>=20||now-lastReverseAt>=5000){
+   lastReverseAt=now;lastReverseLat=lat;lastReverseLng=lng;
+   await reverseLocation(lat,lng,acc);
+  }
+  if(acc<=30) await finish();
+ };
+ const error=err=>{
+  if(best) finish();
+  else{
+   const msg=err.code===1?"请允许浏览器使用位置权限":err.code===2?"暂时无法获取当前位置":err.code===3?"定位超时，请重试":"当前位置获取失败";
+   $("locationText").textContent=msg;
+   if(btn){btn.disabled=false;btn.textContent="📍 重新获取当前位置"}
+  }
+ };
+ try{
+  locationWatchId=navigator.geolocation.watchPosition(success,error,{enableHighAccuracy:true,timeout:30000,maximumAge:0});
+  locationTimer=setTimeout(finish,15000);
+ }catch(e){error({code:2})}
+ return state.location;
 }
 async function checkDeliverySource(){
  if(state.location?.latitude&&state.location?.longitude){$("status").textContent="GPS已连接 · 真实商家源可用";return true}
