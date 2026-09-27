@@ -250,7 +250,7 @@ export default {
       if(!env.TAOBAO_APP_KEY||!env.TAOBAO_APP_SECRET||!env.TAOBAO_PID) return json({ok:false,live:false,code:"TAOBAO_NOT_CONFIGURED",error:"淘宝闪购推广参数尚未配置"},503,origin);
       const lat=Number(url.searchParams.get("lat")),lng=Number(url.searchParams.get("lng"));
       if(!Number.isFinite(lat)||!Number.isFinite(lng)) return json({ok:false,live:false,code:"LOCATION_REQUIRED",error:"请先获取手机当前位置"},400,origin);
-      const qr={biz_type:String(env.TAOBAO_BIZ_TYPE||"hot_item"),pid:String(env.TAOBAO_PID),page_number:1,page_size:20,longitude:lng,latitude:lat,sort_type:1};
+      const qr={biz_type:String(env.TAOBAO_BIZ_TYPE||"activityCps|ordinaryCps"),pid:String(env.TAOBAO_PID),page_number:1,page_size:20,longitude:lng,latitude:lat,sort_type:"distance"};
       const cityId=String(url.searchParams.get("city_code")||"").trim(); if(cityId)qr.city_id=cityId;
       if(category&&category!=="all")qr.search_content=category;
       const params={method:"alibaba.alsc.union.eleme.promotion.storepromotion.query",app_key:String(env.TAOBAO_APP_KEY),format:"json",sign_method:"hmac",timestamp:new Date().toLocaleString("sv-SE",{timeZone:"Asia/Shanghai"}).replace("T"," "),v:"2.0",query_request:JSON.stringify(qr)};
@@ -260,10 +260,15 @@ export default {
         const data=await r.json(); if(!r.ok)return json({ok:false,live:false,error:"淘宝闪购接口请求失败"},502,origin);
         const root=data?.alibaba_alsc_union_eleme_promotion_storepromotion_query_response||data;
         if(root?.error_response||Number(root?.result_code||0)!==0)return json({ok:false,live:false,code:"TAOBAO_API_ERROR",error:String(root?.error_message||root?.error_response?.sub_msg||root?.message||"淘宝闪购返回错误")},502,origin);
-        const raw=root?.data?.records||root?.data?.store_list||root?.data?.stores||[],records=Array.isArray(raw)?raw:[];
+        const raw=root?.data?.records;
+        const records=Array.isArray(raw)?raw:(Array.isArray(raw?.store_promotion_dto)?raw.store_promotion_dto:[]);
+
         const results=records.map(x=>{
-          const name=String(x.store_name||x.shop_name||x.name||"").trim(), price=Number(x.min_price||x.start_price||x.average_price||0), image=String(x.store_logo||x.shop_logo||x.pic_url||x.picture||""), link=String(x.h5_url||x.shop_url||x.url||x.link||""), id=String(x.store_id||x.shop_id||x.id||""), tags=Array.isArray(x.tags)?x.tags.join(" "):String(x.tags||x.category_name||"");
-          return {source:"taobao",id,name,price:Number(price.toFixed(2)),originalPrice:0,discount:"",image,sales:String(x.month_sales||x.sales||x.total_sales||""),stock:"",shops:1,category:tags||"正餐",url:link};
+          const item=Array.isArray(x.items?.promotion_item)?x.items.promotion_item[0]:null;
+          const name=String(x.title||"").trim(), price=Number(item?.price||0), originalPrice=Number(item?.origin_price||0), image=String(item?.picture||x.shop_logo||""), id=String(x.shop_id||"");
+          const tags=String(x.category_1_name||"");
+          const link=String(x.link?.wx_path||"");
+          return {source:"taobao",id,name,price:Number(price.toFixed(2)),originalPrice:Number(originalPrice.toFixed(2)),discount:originalPrice>price&&price>0?((price/originalPrice)*10).toFixed(1):"",image,sales:String(x.indistinct_monthly_sales||""),stock:"",shops:1,category:tags||"正餐",url:link,distance:Number(x.delivery_distance||0),deliveryTime:Number(x.delivery_time||0),deliveryPrice:String(x.delivery_price||"")};
         }).filter(x=>x.name&&(!budget||!x.price||x.price<=budget)&&(category?(x.category.includes(category)||x.name.includes(category)):true));
         return json({ok:true,live:true,source:"taobao",results,rawTotal:Number(root?.data?.total||results.length),sessionId:String(root?.data?.session_id||"")},200,origin);
       }catch(e){return json({ok:false,live:false,error:"淘宝闪购接口网络请求失败"},502,origin)}
