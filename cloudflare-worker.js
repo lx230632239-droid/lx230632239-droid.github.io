@@ -206,6 +206,7 @@ export default {
       const platform=String(url.searchParams.get("platform")||"taobao").trim();
       const budget=Number(url.searchParams.get("budget")||0);
       const category=String(url.searchParams.get("category")||"").trim();
+      const people=String(url.searchParams.get("people")||"").trim();
       if(platform!=="taobao") return json({ok:true,source:platform,live:false,results:[],message:"该平台官方实时接口尚未配置"},200,origin);
       if(!env.TAOBAO_APP_KEY || !env.TAOBAO_APP_SECRET || !env.TAOBAO_PID){
         return json({ok:false,live:false,code:"TAOBAO_NOT_CONFIGURED",error:"淘宝闪购推广参数尚未配置"},503,origin);
@@ -228,7 +229,16 @@ export default {
         if(!r.ok)return json({ok:false,live:false,error:"淘宝闪购接口请求失败"},502,origin);
         const root=data?.alibaba_alsc_union_eleme_promotion_itempromotion_query_response||data;
         const records=pickArray(root?.data?.records);
-        const results=records.map(cleanItem).filter(x=>x.name && x.price>0 && (!budget||x.price<=budget) && (!category||category==="all"||x.category===category));
+        const results=records.map(cleanItem).filter(x=>{
+        if(!x.name||x.price<=0|| (budget&&x.price>budget) || (category&&category!=="all"&&x.category!==category)) return false;
+        if(!people) return true;
+        const n=x.rawName||x.name;
+        if(people==="single") return /单人|一人|1人|单份/.test(n);
+        if(people==="double") return /双人|2人/.test(n) && !/2[—\-~至]?3人/.test(n);
+        if(people==="2-3") return /2[—\-~至]?3人|2-3人|两三人|2至3人/.test(n);
+        if(people==="6-8") return /6[—\-~至]?8人|6-8人|六至八人|6至8人/.test(n);
+        return true;
+      });
         return json({ok:true,live:true,source:"taobao",results,rawTotal:Number(root?.data?.total||results.length)},200,origin);
       }catch(e){return json({ok:false,live:false,error:"淘宝闪购接口网络请求失败"},502,origin)}
     }
@@ -256,8 +266,9 @@ export default {
       const requestText = String(body.requestText || body.context || "").trim();
       const taste = String(body.tasteFilter || "随便").trim(), budget = String(body.budget || "").trim(), people = String(body.people || "").trim();
       if (!candidates.length) return json({ ok:false, error:"没有可供AI选择的菜品" },400,origin);
+      const peopleLabel={single:"单人餐",double:"双人餐","2-3":"2–3人餐","6-8":"6–8人餐"}[people]||"不限人数";
       const prompt=["你是“吃点啥”里的AI点餐顾问。根据预算、人数、口味和用户文字要求，从候选菜单中真正帮用户做决定。只能选候选菜名，不得虚构。返回严格JSON：winner、reason、alternatives、orderTip、confidence。",
-      "预算："+budget+"；人数："+people+"；口味："+taste+"；用户要求："+(requestText||"无"),
+      "预算："+budget+"；人数："+peopleLabel+"；口味："+taste+"；用户要求："+(requestText||"无"),
       "候选："+JSON.stringify(candidates.map(x=>({name:x.n,category:x.cat,region:x.region||""})))].join("\n");
       try{
         const r=await fetch("https://api.openai.com/v1/responses",{method:"POST",headers:{"Authorization":"Bearer "+env.OPENAI_API_KEY,"Content-Type":"application/json"},body:JSON.stringify({model:"gpt-5-mini",input:prompt,max_output_tokens:700})});
