@@ -3,7 +3,7 @@ const ALLOW_ORIGIN = "https://lx230632239-droid.github.io";
 function cors(origin = ALLOW_ORIGIN) {
   return {
     "Access-Control-Allow-Origin": origin === ALLOW_ORIGIN ? origin : ALLOW_ORIGIN,
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
     "Cache-Control": "no-store"
   };
@@ -47,6 +47,32 @@ export default {
 
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors(origin) });
+    }
+
+    const url = new URL(request.url);
+
+    if (url.pathname === "/music") {
+      if (request.method !== "GET") return json({ ok:false, error:"音乐搜索只接受 GET 请求" },405,origin);
+      const q = String(url.searchParams.get("q") || "").trim().slice(0,120);
+      if (!q) return json({ ok:false, error:"请输入歌名、歌手或音乐氛围" },400,origin);
+      try {
+        const api = "https://itunes.apple.com/search?term="+encodeURIComponent(q)+"&media=music&entity=song&limit=12&country=CN";
+        const r = await fetch(api, { headers:{ "Accept":"application/json" } });
+        const data = await r.json();
+        if (!r.ok) return json({ok:false,error:"在线音乐搜索失败"},502,origin);
+        const results=(data.results||[]).map(x=>({
+          id:String(x.trackId||x.collectionId||""),
+          name:String(x.trackName||""),
+          artist:String(x.artistName||""),
+          album:String(x.collectionName||""),
+          artwork:String(x.artworkUrl100||x.artworkUrl60||"").replace("100x100","600x600"),
+          preview:String(x.previewUrl||""),
+          link:String(x.trackViewUrl||x.collectionViewUrl||"")
+        })).filter(x=>x.name&&x.preview);
+        return json({ok:true,query:q,results},200,origin);
+      } catch(e) {
+        return json({ok:false,error:"在线音乐服务暂时不可用"},502,origin);
+      }
     }
 
     const url = new URL(request.url);
