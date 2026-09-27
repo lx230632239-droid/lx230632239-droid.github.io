@@ -66,7 +66,27 @@ export default {
     try { body = await request.json(); }
     catch { return json({ ok: false, error: "请求数据不是有效 JSON" }, 400, origin); }
 
+    const mode = String(body.mode || "food").trim();
     const name = String(body.name || "").trim();
+    if (mode === "decide") {
+      const candidates = Array.isArray(body.candidates) ? body.candidates.slice(0, 80) : [];
+      const requestText = String(body.requestText || "").trim();
+      const taste = String(body.tasteFilter || "随便").trim(), budget = String(body.budget || "").trim(), people = String(body.people || "").trim();
+      if (!candidates.length) return json({ ok:false, error:"没有可供AI选择的菜品" },400,origin);
+      const prompt=["你是“吃点啥”里的AI点餐顾问。根据预算、人数、口味和用户文字要求，从候选菜单中真正帮用户做决定。只能选候选菜名，不得虚构。返回严格JSON：winner、reason、alternatives、orderTip、confidence。",
+      "预算："+budget+"；人数："+people+"；口味："+taste+"；用户要求："+(requestText||"无"),
+      "候选："+JSON.stringify(candidates.map(x=>({name:x.n,category:x.cat,region:x.region||""})))].join("\n");
+      try{
+        const r=await fetch("https://api.openai.com/v1/responses",{method:"POST",headers:{"Authorization":"Bearer "+env.OPENAI_API_KEY,"Content-Type":"application/json"},body:JSON.stringify({model:"gpt-5-mini",input:prompt,max_output_tokens:700})});
+        const data=await r.json(); if(!r.ok)return json({ok:false,error:data?.error?.message||"OpenAI请求失败"},r.status,origin);
+        const parsed=parseJson(extractText(data)); if(!parsed)return json({ok:false,error:"AI返回内容解析失败"},502,origin);
+        const names=new Set(candidates.map(x=>x.n)); const winner=names.has(String(parsed.winner||""))?String(parsed.winner):candidates[0].n;
+        const alternatives=Array.isArray(parsed.alternatives)?parsed.alternatives.filter(x=>names.has(String(x))).slice(0,2):[];
+        return json({ok:true,winner,reason:String(parsed.reason||"根据你的条件综合选择。"),alternatives,orderTip:String(parsed.orderTip||"按人数适量点餐。"),confidence:Math.max(1,Math.min(5,Number(parsed.confidence)||4))},200,origin);
+      }catch(e){return json({ok:false,error:"AI接口网络请求失败"},502,origin);}
+    }
+
+
     const category = String(body.category || "").trim();
     const region = String(body.region || "").trim();
     const tasteFilter = String(body.tasteFilter || "随便").trim();
