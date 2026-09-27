@@ -55,24 +55,62 @@ export default {
       if (request.method !== "GET") return json({ ok:false, error:"音乐搜索只接受 GET 请求" },405,origin);
       const q = String(url.searchParams.get("q") || "").trim().slice(0,120);
       if (!q) return json({ ok:false, error:"请输入歌名、歌手或音乐氛围" },400,origin);
+
+      // 音乐源：Apple/iTunes 为主，Deezer 作为备用。
+      // 只返回官方接口提供的合法试听片段/歌曲页面，不抓取或破解完整音源。
+      const results = [];
+
       try {
-        const api = "https://itunes.apple.com/search?term="+encodeURIComponent(q)+"&media=music&entity=song&limit=12&country=CN";
+        const api = "https://itunes.apple.com/search?term="+encodeURIComponent(q)+"&media=music&entity=song&limit=20&country=CN";
         const r = await fetch(api, { headers:{ "Accept":"application/json" } });
-        const data = await r.json();
-        if (!r.ok) return json({ok:false,error:"在线音乐搜索失败"},502,origin);
-        const results=(data.results||[]).map(x=>({
-          id:String(x.trackId||x.collectionId||""),
-          name:String(x.trackName||""),
-          artist:String(x.artistName||""),
-          album:String(x.collectionName||""),
-          artwork:String(x.artworkUrl100||x.artworkUrl60||"").replace("100x100","600x600"),
-          preview:String(x.previewUrl||""),
-          link:String(x.trackViewUrl||x.collectionViewUrl||"")
-        })).filter(x=>x.name&&x.preview);
-        return json({ok:true,query:q,results},200,origin);
-      } catch(e) {
-        return json({ok:false,error:"在线音乐服务暂时不可用"},502,origin);
+        if (r.ok) {
+          const data = await r.json();
+          for (const x of (data.results||[])) {
+            const item = {
+              id:"itunes-"+String(x.trackId||x.collectionId||""),
+              name:String(x.trackName||""),
+              artist:String(x.artistName||""),
+              album:String(x.collectionName||""),
+              artwork:String(x.artworkUrl100||x.artworkUrl60||"").replace("100x100","600x600"),
+              preview:String(x.previewUrl||""),
+              link:String(x.trackViewUrl||x.collectionViewUrl||""),
+              source:"Apple Music"
+            };
+            if (item.name && item.preview) results.push(item);
+          }
+        }
+      } catch(e) {}
+
+      // Apple 没有可试听结果时，再尝试 Deezer 公共搜索接口。
+      if (!results.length) {
+        try {
+          const api = "https://api.deezer.com/search?q="+encodeURIComponent(q)+"&limit=20";
+          const r = await fetch(api, { headers:{ "Accept":"application/json" } });
+          if (r.ok) {
+            const data = await r.json();
+            for (const x of (data.data||[])) {
+              const item = {
+                id:"deezer-"+String(x.id||""),
+                name:String(x.title||""),
+                artist:String(x.artist?.name||""),
+                album:String(x.album?.title||""),
+                artwork:String(x.album?.cover_big||x.album?.cover_medium||""),
+                preview:String(x.preview||""),
+                link:String(x.link||""),
+                source:"Deezer"
+              };
+              if (item.name && item.preview) results.push(item);
+            }
+          }
+        } catch(e) {}
       }
+
+      return json({
+        ok:true,
+        query:q,
+        source:results.length ? results[0].source : null,
+        results:results.slice(0,20)
+      },200,origin);
     }
 
     if (url.pathname !== "/food") {
