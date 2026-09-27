@@ -69,7 +69,6 @@ function taobaoSign(params, secret){
 function pickArray(v){
   if(Array.isArray(v)) return v;
   if(v && Array.isArray(v.item_promotion_dto)) return v.item_promotion_dto;
-  if(v && Array.isArray(v.store_promotion_dto)) return v.store_promotion_dto;
   return [];
 }
 function cleanItem(x){
@@ -206,33 +205,9 @@ export default {
     if (url.pathname === "/location") {
       if (request.method !== "GET") return json({ok:false,error:"定位接口只接受 GET 请求"},405,origin);
       const cf=request.cf||{};
-      const lat=Number(url.searchParams.get("lat")||0);
-      const lng=Number(url.searchParams.get("lng")||0);
-      let country=String(cf.country||"").toUpperCase();
-      let city=String(cf.city||"").trim();
-      let region=String(cf.region||"").trim();
-      let address="";
-      let district="";
-      let latitude=Number.isFinite(lat)&&Math.abs(lat)<=90?lat:(Number(cf.latitude)||null);
-      let longitude=Number.isFinite(lng)&&Math.abs(lng)<=180?lng:(Number(cf.longitude)||null);
-
-      // 有手机经纬度时，优先反查真实地址；没有 GPS 才退回 Cloudflare 网络定位。
-      if(latitude!==null&&longitude!==null&&url.searchParams.has("lat")&&url.searchParams.has("lng")){
-        try{
-          const geoUrl="https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat="+encodeURIComponent(latitude)+"&lon="+encodeURIComponent(longitude)+"&zoom=18&addressdetails=1&accept-language=zh-CN";
-          const gr=await fetch(geoUrl,{headers:{"Accept":"application/json","User-Agent":"EatWhatDelivery/1.0 (food decision app)"}});
-          if(gr.ok){
-            const gd=await gr.json();
-            const ad=gd.address||{};
-            address=String(gd.display_name||"");
-            district=String(ad.city_district||ad.district||ad.suburb||ad.town||ad.county||"");
-            city=String(ad.city||ad.town||ad.municipality||ad.county||city);
-            region=String(ad.state||ad.province||region);
-            country=String(ad.country_code||country).toUpperCase();
-          }
-        }catch(e){}
-      }
-
+      const country=String(cf.country||"").toUpperCase();
+      const city=String(cf.city||"").trim();
+      const region=String(cf.region||"").trim();
       const provinceCodes={
         "北京":"110000","天津":"120000","河北":"130000","山西":"140000","内蒙古":"150000",
         "辽宁":"210000","吉林":"220000","黑龙江":"230000","上海":"310000","江苏":"320000",
@@ -244,10 +219,14 @@ export default {
       };
       const regionClean=region.replace(/省|市|自治区|壮族自治区|回族自治区|维吾尔自治区|特别行政区/g,"");
       return json({
-        ok:true,source:(url.searchParams.has("lat")&&url.searchParams.has("lng"))?"device":"network",
-        country,city,region,district,address,latitude,longitude,
+        ok:true,
+        country,
+        city,
+        region,
+        latitude:cf.latitude||null,
+        longitude:cf.longitude||null,
         timezone:cf.timezone||null,
-        taobaoCityCode:country==="CN"?(provinceCodes[regionClean]||""):""
+        taobaoCityCode:country==="CN" ? (provinceCodes[regionClean]||"") : ""
       },200,origin);
     }
 
@@ -273,35 +252,45 @@ export default {
     if (url.pathname === "/delivery") {
       if (request.method !== "GET") return json({ok:false,error:"外卖接口只接受 GET 请求"},405,origin);
       const platform=String(url.searchParams.get("platform")||"taobao").trim();
-      const budget=Number(url.searchParams.get("budget")||0), category=String(url.searchParams.get("category")||"").trim(), people=String(url.searchParams.get("people")||"").trim();
-      const latitude=Number(url.searchParams.get("latitude")||0), longitude=Number(url.searchParams.get("longitude")||0);
+      const budget=Number(url.searchParams.get("budget")||0);
+      const category=String(url.searchParams.get("category")||"").trim();
+      const people=String(url.searchParams.get("people")||"").trim();
       if(platform!=="taobao") return json({ok:true,source:platform,live:false,results:[],message:"该平台官方实时接口尚未配置"},200,origin);
-      if(!env.TAOBAO_APP_KEY||!env.TAOBAO_APP_SECRET||!env.TAOBAO_PID) return json({ok:false,live:false,code:"TAOBAO_NOT_CONFIGURED",error:"淘宝闪购推广参数尚未配置"},503,origin);
-      if(!Number.isFinite(latitude)||!Number.isFinite(longitude)||Math.abs(latitude)>90||Math.abs(longitude)>180) return json({ok:false,live:false,code:"LOCATION_REQUIRED",error:"需要当前位置才能匹配附近外卖"},400,origin);
-      const qr={pid:String(env.TAOBAO_PID),longitude:String(longitude),latitude:String(latitude),city_id:"",sort_type:"normal",in_activity:false,has_bonus_stock:false,min_commission_rate:"0.01",page_size:20,biz_type:"activityCps|ordinaryCps",include_dynamic:false};
-      if(category&&category!=="all") qr.search_content=category;
-      const params={method:"alibaba.alsc.union.eleme.promotion.storepromotion.query",app_key:String(env.TAOBAO_APP_KEY),format:"json",sign_method:"hmac",timestamp:new Date().toLocaleString("sv-SE",{timeZone:"Asia/Shanghai"}).replace("T"," "),v:"2.0",query_request:JSON.stringify(qr)};
+      if(!env.TAOBAO_APP_KEY || !env.TAOBAO_APP_SECRET || !env.TAOBAO_PID){
+        return json({ok:false,live:false,code:"TAOBAO_NOT_CONFIGURED",error:"淘宝闪购推广参数尚未配置"},503,origin);
+      }
+      const bizType=String(env.TAOBAO_BIZ_TYPE||"hot_item");
+      const qr={biz_type:bizType,pid:String(env.TAOBAO_PID),page_number:1,page_size:20};
+      const cityCode=String(url.searchParams.get("city_code")||"").trim();
+      if(cityCode)qr.city_code=cityCode;
+      const params={
+        method:"alibaba.alsc.union.eleme.promotion.itempromotion.query",
+        app_key:String(env.TAOBAO_APP_KEY),format:"json",sign_method:"hmac",
+        timestamp:new Date().toLocaleString("sv-SE",{timeZone:"Asia/Shanghai"}).replace("T"," "),
+        v:"2.0",query_request:JSON.stringify(qr)
+      };
       params.sign=taobaoSign(params,String(env.TAOBAO_APP_SECRET));
       try{
-        const r=await fetch("https://eco.taobao.com/router/rest",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},body:new URLSearchParams(params)});
-        const data=await r.json(); const root=data?.alibaba_alsc_union_eleme_promotion_storepromotion_query_response||data;
+        const body=new URLSearchParams(params);
+        const r=await fetch("https://eco.taobao.com/router/rest",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},body});
+        const data=await r.json();
         if(!r.ok)return json({ok:false,live:false,error:"淘宝闪购接口请求失败"},502,origin);
-        if(root?.error_response||Number(root?.result_code||0)!==0)return json({ok:false,live:false,code:"TAOBAO_API_ERROR",error:String(root?.error_message||root?.error_response?.sub_msg||root?.message||"淘宝闪购返回错误")},502,origin);
-        const raw=pickArray(root?.data?.records), results=[];
-        for(const s of raw){
-          const items=Array.isArray(s.items?.promotion_item)?s.items.promotion_item:(Array.isArray(s.items)?s.items:[]);
-          for(const item of items){
-            const name=String(item.title||s.title||"").trim(), price=Number(item.price||0), original=Number(item.origin_price||0);
-            if(!name||!price|| (budget&&price>budget)) continue;
-            const n=name;
-            if(people==="single"&&!/单人|一人|1人|单份/.test(n)) continue;
-            if(people==="double"&&!(/双人|2人/.test(n)&&!/2[—\-~至]?3人/.test(n))) continue;
-            if(people==="2-3"&&!/2[—\-~至]?3人|2-3人|两三人|2至3人/.test(n)) continue;
-            if(people==="6-8"&&!/6[—\-~至]?8人|6-8人|六至八人|6至8人/.test(n)) continue;
-            results.push({source:"taobao",id:String(item.shop_id||s.shop_id||""),itemId:String(item.item_id||""),name,price:Number(price.toFixed(2)),originalPrice:Number(original.toFixed(2)),discount:original>0?(price/original*10).toFixed(1):"",image:String(item.picture||s.shop_logo||""),sales:String(s.indistinct_monthly_sales||""),stock:"",shop:String(s.title||"淘宝闪购餐饮门店"),distance:Number(s.delivery_distance||0),deliveryTime:Number(s.delivery_time||0),deliveryPrice:String(s.delivery_price||""),rating:String(s.service_rating||""),url:String(s.link?.h5_url||s.link?.short_link||s.link?.wx_path||s.promotion_link||"")});
-          }
+        const root=data?.alibaba_alsc_union_eleme_promotion_itempromotion_query_response||data;
+        if(root?.error_response || Number(root?.result_code||0)!==0){
+          return json({ok:false,live:false,code:"TAOBAO_API_ERROR",error:String(root?.error_message||root?.error_response?.sub_msg||root?.message||"淘宝闪购返回错误")},502,origin);
         }
-        return json({ok:true,live:true,source:"taobao",results:results.slice(0,80),rawTotal:results.length,sessionId:String(root?.data?.session_id||""),location:{latitude,longitude}},200,origin);
+        const records=pickArray(root?.data?.records);
+        const results=records.map(cleanItem).filter(x=>{
+        if(!x.name||x.price<=0|| (budget&&x.price>budget) || (category&&category!=="all"&&x.category!==category)) return false;
+        if(!people) return true;
+        const n=x.rawName||x.name;
+        if(people==="single") return /单人|一人|1人|单份/.test(n);
+        if(people==="double") return /双人|2人/.test(n) && !/2[—\-~至]?3人/.test(n);
+        if(people==="2-3") return /2[—\-~至]?3人|2-3人|两三人|2至3人/.test(n);
+        if(people==="6-8") return /6[—\-~至]?8人|6-8人|六至八人|6至8人/.test(n);
+        return true;
+      });
+        return json({ok:true,live:true,source:"taobao",results,rawTotal:Number(root?.data?.total||results.length),sessionId:String(root?.data?.session_id||"")},200,origin);
       }catch(e){return json({ok:false,live:false,error:"淘宝闪购接口网络请求失败"},502,origin)}
     }
 
