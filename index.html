@@ -343,8 +343,10 @@ async function showResult(f){
   $("resultCat").textContent=(catIcon[f.cat]||"🍽️")+" "+f.cat;$("resultName").textContent=f.n;
   $("resultDesc").textContent=tastyDesc(f);
   $("recommend").textContent=s.r+"/5";$("taste").textContent=s.t+"/5";$("resultRegion").innerHTML="📍 <b>地点：</b>"+esc(f.region||"我的菜单")+"<br>📖 <b>故事：</b>"+esc(foodStory(f))+"<br>🍴 <b>点评：</b>"+esc(tastyDesc(f));
+  $("aiState").textContent="AI 正在联网分析这道美食…";$("aiState").style.opacity=".65";
   $("resultPhoto").innerHTML=photoBox(f,"result");$("result").classList.add("show");
   celebrate();
+  aiFood(f);
 }
 
 let musicMode="food",userAudio=null,musicAudio=null,musicOn=false,onlineSongs=[];
