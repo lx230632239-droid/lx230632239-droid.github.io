@@ -208,8 +208,49 @@ function cartoonBox(f,kind){
  const svg="<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 420' role='img' aria-label='"+n+"'><defs><linearGradient id='bg' x1='0' y1='0' x2='1' y2='1'><stop stop-color='"+p[0]+"'/><stop offset='1' stop-color='#fffaf7'/></linearGradient></defs><rect width='640' height='420' rx='30' fill='url(#bg)'/><text x='320' y='55' text-anchor='middle' font-family='sans-serif' font-size='26' font-weight='800' fill='#6f5147'>"+n+"</text><text x='320' y='88' text-anchor='middle' font-family='sans-serif' font-size='15' font-weight='700' fill='"+p[1]+"'>"+cue+"</text>"+d+"<path d='M245 350Q320 375 395 350' fill='none' stroke='"+p[1]+"' stroke-width='8' stroke-linecap='round' opacity='.6'/></svg>";
  return "<div class='"+cls+" cartoonFood' data-food-id='"+esc(f.id)+"'>"+svg+"</div>";
 }
-function photoBox(f,kind){return cartoonBox(f,kind);}
-function hydrate(){return Promise.resolve()}
+function photoBox(f,kind){
+  if(f.img){
+    const cls=kind==="result"?"resultPhoto":kind==="mini"?"miniPhoto":kind==="row"?"rowPhoto":"itemPhoto";
+    return "<div class='"+cls+"'><img src='"+esc(f.img)+"' alt='"+esc(f.n)+"'></div>";
+  }
+  const cls=kind==="result"?"resultPhoto":kind==="mini"?"miniPhoto":kind==="row"?"rowPhoto":"itemPhoto";
+  return cartoonBox(f,kind).replace("<div class='"+cls+"'>","<div class='"+cls+"' data-food-id='"+esc(f.id)+"' data-food-name='"+esc(f.n)+"'>");
+}
+async function fetchRealFoodImage(f,node){
+  if(!f||f.img||!node||node.dataset.realLoaded==="1")return;
+  const key=f.id+"|"+f.n, cached=imgCache[key];
+  if(cached){node.innerHTML="<img src='"+esc(cached)+"' alt='"+esc(f.n)+"' loading='lazy'>";node.dataset.realLoaded="1";return;}
+  const q=queryMap[f.n]||f.n;
+  try{
+    const url="https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch="+encodeURIComponent(q+" food")+"&gsrnamespace=6&gsrlimit=12&prop=imageinfo&iiprop=url|mime&iiurlwidth=1000&format=json&origin=*";
+    const data=await (await fetch(url)).json();
+    const pages=Object.values(data.query?.pages||{});
+    const tokens=q.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]+/g," ").trim().split(/\s+/).filter(x=>x.length>1);
+    const scored=pages.map(p=>{
+      const title=(p.title||"").replace(/^File:/i,"").toLowerCase();
+      const info=p.imageinfo?.[0];
+      if(!info?.mime?.startsWith("image/")||!info.url)return null;
+      let score=0;
+      if(tokens.length) score=tokens.reduce((n,t)=>n+(title.includes(t)?1:0),0)/tokens.length;
+      if(title.includes(f.n.toLowerCase()))score+=1;
+      if(/logo|icon|map|poster|diagram|menu|packaging|label|screenshot/i.test(title))score-=2;
+      return {score,url:info.thumburl||info.url};
+    }).filter(Boolean).sort((a,b)=>b.score-a.score);
+    const hit=scored[0];
+    if(hit&&hit.score>=0.75){
+      imgCache[key]=hit.url;save("food_image_cache_v2",imgCache);
+      node.innerHTML="<img src='"+esc(hit.url)+"' alt='"+esc(f.n)+"' loading='lazy' referrerpolicy='no-referrer'>";
+      node.dataset.realLoaded="1";
+    }
+  }catch(e){}
+}
+async function hydrate(){
+  const nodes=document.querySelectorAll("[data-food-id]");
+  for(const node of nodes){
+    const f=systemFoods.find(x=>x.id===node.dataset.foodId)||customFoods.find(x=>x.id===node.dataset.foodId);
+    if(f&&!f.img)await fetchRealFoodImage(f,node);
+  }
+}
 
 function render(){
   $("systemCount").textContent=systemFoods.length;
