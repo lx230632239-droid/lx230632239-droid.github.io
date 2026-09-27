@@ -211,7 +211,7 @@ export default {
       if(!env.TAOBAO_APP_KEY || !env.TAOBAO_APP_SECRET || !env.TAOBAO_PID){
         return json({ok:false,live:false,code:"TAOBAO_NOT_CONFIGURED",error:"淘宝闪购推广参数尚未配置"},503,origin);
       }
-      const bizType=String(env.TAOBAO_BIZ_TYPE||"hot_item");
+      const bizType=String(env.TAOBAO_BIZ_TYPE||"union_item");
       const qr={biz_type:bizType,pid:String(env.TAOBAO_PID),page_number:1,page_size:20};
       const cityCode=String(url.searchParams.get("city_code")||"").trim();
       if(cityCode)qr.city_code=cityCode;
@@ -228,6 +228,9 @@ export default {
         const data=await r.json();
         if(!r.ok)return json({ok:false,live:false,error:"淘宝闪购接口请求失败"},502,origin);
         const root=data?.alibaba_alsc_union_eleme_promotion_itempromotion_query_response||data;
+        if(root?.error_response || Number(root?.result_code||0)!==0){
+          return json({ok:false,live:false,code:"TAOBAO_API_ERROR",error:String(root?.error_message||root?.error_response?.sub_msg||root?.message||"淘宝闪购返回错误")},502,origin);
+        }
         const records=pickArray(root?.data?.records);
         const results=records.map(cleanItem).filter(x=>{
         if(!x.name||x.price<=0|| (budget&&x.price>budget) || (category&&category!=="all"&&x.category!==category)) return false;
@@ -239,7 +242,7 @@ export default {
         if(people==="6-8") return /6[—\-~至]?8人|6-8人|六至八人|6至8人/.test(n);
         return true;
       });
-        return json({ok:true,live:true,source:"taobao",results,rawTotal:Number(root?.data?.total||results.length)},200,origin);
+        return json({ok:true,live:true,source:"taobao",results,rawTotal:Number(root?.data?.total||results.length),sessionId:String(root?.data?.session_id||"")},200,origin);
       }catch(e){return json({ok:false,live:false,error:"淘宝闪购接口网络请求失败"},502,origin)}
     }
 
