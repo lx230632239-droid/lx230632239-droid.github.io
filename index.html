@@ -53,7 +53,7 @@
       </div>
       <div class="actions">
         <button class="action map" id="goMap">🗺️ 查看地图</button>
-        <button class="action platform" id="goPlatform">🔎 查看平台</button>
+        <button class="action platform" id="goPlatform">🚀 去平台下单</button>
       </div>
       <button class="btn" id="again">🎲 再抽一次</button>
     </div>
@@ -73,7 +73,7 @@
 
 <section class="section card notice">
   <b>数据说明</b><br>
-  核心抽取使用真实附近餐饮地图数据，不编造价格、销量或库存。淘宝闪购已预留官方实时接口通道；美团已预留官方入口，但在未取得美团开放平台接口权限前，不会伪造商家、价格或优惠数据。
+  核心抽取使用真实附近餐饮地图数据，不编造价格、销量或库存。平台接口不是必须条件：抽中的真实商家会按你选择的平台一键打开，并自动复制商家名称，方便直接搜索下单；如未来接入官方接口，再自动升级为商品级盲盒。
 </section>
 </main>
 
@@ -171,19 +171,8 @@ async function fetchNearby(){
 }
 async function fetchDelivery(){
  if(!APP.location)throw new Error("请先获取当前位置");
- const p=APP.filters.platform,budget=APP.filters.budget,category=APP.filters.category,people=APP.filters.people;
- if(p==="taobao"){
-  const u=WORKER+"/delivery?platform=taobao&lat="+encodeURIComponent(APP.location.lat)+"&lng="+encodeURIComponent(APP.location.lng)+"&budget="+encodeURIComponent(budget==="all"?"0":budget)+"&category="+encodeURIComponent(category)+"&people="+encodeURIComponent(people);
-  const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),10000);
-  try{
-   const r=await fetch(u,{signal:ctl.signal,cache:"no-store",headers:{Accept:"application/json"}});
-   const d=await r.json().catch(()=>({}));
-   if(!r.ok||!d.ok) throw new Error(d.error||"淘宝闪购接口暂未连通");
-   if(!Array.isArray(d.results)||!d.results.length) throw new Error("淘宝闪购当前没有返回符合条件的真实外卖结果");
-   return d.results;
-  }catch(e){throw new Error(e.name==="AbortError"?"淘宝闪购接口响应超时":(e.message||"淘宝闪购接口暂不可用"))}finally{clearTimeout(timer)}
- }
- if(p==="meituan") throw new Error("美团实时外卖需要美团开放平台合作接口；当前代码没有伪造美团数据。");
+ // 不依赖平台私有接口：真实附近商家就是盲盒候选池。
+ // 平台只负责最后一步跳转，避免假价格、假库存、假链接。
  return null;
 }
 function showResult(x){
@@ -195,10 +184,17 @@ function showResult(x){
  $("kind").textContent=x.category||"餐饮";
  $("sourceTag").textContent=x.source==="taobao"?"淘宝闪购真实结果":x.source==="meituan"?"美团真实结果":"真实附近商家";
  $("goMap").onclick=()=>window.open("https://www.openstreetmap.org/?mlat="+encodeURIComponent(x.lat)+"&mlon="+encodeURIComponent(x.lng||x.lon)+"#map=18/"+encodeURIComponent(x.lat)+"/"+encodeURIComponent(x.lng||x.lon),"_blank");
- $("goPlatform").onclick=()=>{
+ $("goPlatform").onclick=async()=>{
   if(x.url){window.open(x.url,"_blank");return}
-  if(APP.filters.platform==="taobao"){showMessage("该结果来自附近真实商家，但淘宝闪购推广链接未随结果返回。")}
-  else{window.open("https://waimai.meituan.com/","_blank");showMessage("已打开美团外卖官方入口；当前未取得美团商家实时接口数据。")}
+  const name=x.name||"附近餐厅";
+  try{await navigator.clipboard.writeText(name)}catch(_){}
+  if(APP.filters.platform==="taobao"){
+    window.open("https://tb.ele.me/","_blank");
+    showMessage("已复制「"+name+"」，并打开淘宝闪购/饿了么入口；进入后直接粘贴店名搜索。");
+  }else{
+    window.open("https://waimai.meituan.com/","_blank");
+    showMessage("已复制「"+name+"」，并打开美团外卖入口；进入后直接粘贴店名搜索。");
+  }
  };
  $("result").classList.add("show");saveHistory({id:x.id,name:x.name,distance:Number(x.distance)||0});$("result").scrollIntoView({behavior:"smooth",block:"start"});
 }
@@ -212,7 +208,7 @@ async function draw(){
    list=await fetchNearby();
   }
   if(!list.length)throw new Error("没有找到符合条件的真实结果。");
-  const x=list[Math.floor(Math.random()*list.length)];
+  // 增加轻微随机权重：同样条件下不会总是抽到最近的一家\n  const pool=list.slice(0,Math.min(list.length,30));\n  const x=pool[Math.floor(Math.random()*pool.length)];
   showResult(x);
   setStatus(x.source==="taobao"?"闪购抽取完成":"附近商家抽取完成");
  }catch(e){showMessage(e.message||"抽取失败");setStatus("抽取失败")}
