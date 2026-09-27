@@ -28,9 +28,9 @@
   <div class="sectionTitle"><b>② 吃什么条件</b><span>分组选择</span></div>
   <div class="filters">
     <div class="filter"><div class="label">平台偏好</div><div class="chips" id="platform"></div></div>
-    <div class="filter"><div class="label">预算</div><div class="chips" id="budget"></div></div>
+    <div class="filter"><div class="label">预算偏好</div><div class="chips" id="budget"></div></div>
     <div class="filter"><div class="label">类别</div><div class="chips" id="category"></div></div>
-    <div class="filter"><div class="label">人数</div><div class="chips" id="people"></div></div>
+    <div class="filter"><div class="label">人数偏好</div><div class="chips" id="people"></div></div>
   </div>
 </section>
 
@@ -334,6 +334,7 @@ async function getLocation() {
     return;
   }
 
+  APP.busy = true;
   setBusy("locateBtn", true, "📍 定位中…", "📍 获取当前位置");
   setStatus("正在定位");
   hideMessage();
@@ -370,6 +371,7 @@ async function getLocation() {
         showMessage("定位数据异常，请重新获取当前位置。");
         setStatus("定位失败");
       } finally {
+        APP.busy = false;
         setBusy("locateBtn", false, "📍 定位中…", "📍 重新获取当前位置");
       }
     },
@@ -382,6 +384,7 @@ async function getLocation() {
       };
       showMessage(messages[error.code] || "定位失败，请再试一次。");
       setStatus("定位失败");
+      APP.busy = false;
       setBusy("locateBtn", false, "📍 定位中…", "📍 获取当前位置");
     },
     {
@@ -600,8 +603,10 @@ function showResult(item) {
   };
 
   $("goPlatform").onclick = async () => {
-    const platformKey =
-      APP.filters.platform === "all" ? "meituan" : APP.filters.platform;
+    const platformKeys = Object.keys(PLATFORM);
+    const platformKey = APP.filters.platform === "all"
+      ? platformKeys[Math.floor(Math.random() * platformKeys.length)]
+      : APP.filters.platform;
     const platform = PLATFORM[platformKey] || PLATFORM.meituan;
     const name = item.name || "附近餐厅";
 
