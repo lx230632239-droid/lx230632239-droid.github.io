@@ -79,212 +79,652 @@
 
 <script>
 "use strict";
-const APP={location:null,current:null,busy:false,filters:{platform:"all",budget:"all",category:"all",people:"all"}};
-const WORKER="https://restless-field-1986.lx230632239.workers.dev";
-const $=id=>document.getElementById(id);
-const CONFIG={
- platform:[["all","随机平台"],["meituan","美团"],["taobao","淘宝闪购"],["eleme","饿了么"],["jd","京东外卖"]],
- budget:[["all","不限"],["20","¥20以内"],["40","¥40以内"],["60","¥60以内"],["100","¥100以内"]],
- category:[["all","随便"],["正餐","正餐"],["小吃","小吃"],["烧烤","烧烤"],["火锅","火锅"],["奶茶","奶茶"],["甜品","甜品"]],
- people:[["all","不限"],["single","单人餐"],["double","双人餐"],["2-3","2–3人餐"],["6-8","6–8人餐"]]
+
+/* =========================================================
+   01. 应用状态
+   ========================================================= */
+const APP = {
+  location: null,
+  current: null,
+  busy: false,
+  filters: {
+    platform: "all",
+    budget: "all",
+    category: "all",
+    people: "all"
+  }
 };
-function setStatus(t){$("status").textContent=t}
-function showMessage(t){const el=$("message");el.textContent=t;el.classList.add("show")}
-function hideMessage(){$("message").classList.remove("show")}
-function renderFilters(){
- Object.entries(CONFIG).forEach(([key,items])=>{
-  const box=$(key);box.innerHTML="";
-  items.forEach(([v,label])=>{
-   const b=document.createElement("button");b.type="button";b.className="chip"+(APP.filters[key]===v?" active":"");b.textContent=label;
-   b.onclick=()=>{APP.filters[key]=v;[...box.children].forEach(x=>x.classList.remove("active"));b.classList.add("active")};
-   box.appendChild(b);
+
+const STORAGE_KEY = "food_box_history_v2";
+const LEGACY_STORAGE_KEY = "food_box_history";
+const WORKER = "https://restless-field-1986.lx230632239.workers.dev";
+const $ = id => document.getElementById(id);
+
+const CONFIG = {
+  platform: [["all","随机平台"],["meituan","美团"],["taobao","淘宝闪购"],["eleme","饿了么"],["jd","京东秒送"]],
+  budget: [["all","不限"],["20","¥20以内"],["40","¥40以内"],["60","¥60以内"],["100","¥100以内"]],
+  category: [["all","随便"],["正餐","正餐"],["小吃","小吃"],["烧烤","烧烤"],["火锅","火锅"],["奶茶","奶茶"],["甜品","甜品"]],
+  people: [["all","不限"],["single","单人餐"],["double","双人餐"],["2-3","2–3人餐"],["6-8","6–8人餐"]]
+};
+
+const PLATFORM = {
+  meituan: { label: "美团外卖", url: "https://waimai.meituan.com/" },
+  taobao: { label: "淘宝闪购", url: "https://tb.ele.me/" },
+  eleme: { label: "饿了么", url: "https://tb.ele.me/" },
+  jd: { label: "京东秒送", url: "https://www.jd.com/" }
+};
+
+/* =========================================================
+   02. 通用 UI
+   ========================================================= */
+function setStatus(text) {
+  $("status").textContent = text;
+}
+
+function showMessage(text) {
+  const el = $("message");
+  el.textContent = text;
+  el.classList.add("show");
+}
+
+function hideMessage() {
+  $("message").classList.remove("show");
+}
+
+function setBusy(buttonId, busy, busyText, normalText) {
+  const el = $(buttonId);
+  if (!el) return;
+  el.disabled = busy;
+  el.textContent = busy ? busyText : normalText;
+}
+
+function safeText(value, fallback = "—") {
+  return value == null || String(value).trim() === "" ? fallback : String(value);
+}
+
+/* =========================================================
+   03. 条件选择
+   ========================================================= */
+function renderFilters() {
+  Object.entries(CONFIG).forEach(([key, items]) => {
+    const box = $(key);
+    box.replaceChildren();
+
+    items.forEach(([value, label]) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "chip" + (APP.filters[key] === value ? " active" : "");
+      button.textContent = label;
+
+      button.addEventListener("click", () => {
+        APP.filters[key] = value;
+        [...box.children].forEach(item => item.classList.remove("active"));
+        button.classList.add("active");
+      });
+
+      box.appendChild(button);
+    });
   });
- });
 }
-function loadHistory(){
- try{return JSON.parse(localStorage.getItem("food_box_history")||"[]")}catch(_){return []}
+
+/* =========================================================
+   04. 历史记录
+   独立模块：支持单条删除、全部清空、坏数据自动修复
+   ========================================================= */
+function normalizeHistory(items) {
+  if (!Array.isArray(items)) return [];
+
+  const seen = new Set();
+  return items
+    .filter(item => item && typeof item === "object" && item.name)
+    .map(item => ({
+      id: String(item.id || item.name),
+      name: String(item.name),
+      distance: Number.isFinite(Number(item.distance)) ? Number(item.distance) : 0
+    }))
+    .filter(item => {
+      if (seen.has(item.id)) return false;
+      seen.add(item.id);
+      return true;
+    })
+    .slice(0, 20);
 }
-function saveHistory(x){
- try{const old=loadHistory().filter(v=>v.id!==x.id);localStorage.setItem("food_box_history",JSON.stringify([x,...old].slice(0,8)))}catch(_){}
- renderHistory();
+
+function loadHistory() {
+  try {
+    const current = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    const normalized = normalizeHistory(current);
+    if (normalized.length || current.length === 0) return normalized;
+
+    const legacy = JSON.parse(localStorage.getItem(LEGACY_STORAGE_KEY) || "[]");
+    return normalizeHistory(legacy);
+  } catch (_) {
+    return [];
+  }
 }
-function renderHistory(){
- const box=$("history"),items=loadHistory();box.innerHTML="";
- if(!items.length){box.innerHTML='<div class="empty">还没有抽取记录</div>';return}
- items.forEach(x=>{
-  const d=document.createElement("div");d.className="historyItem";
-  const main=document.createElement("div");main.className="historyMain";main.textContent="🍱 "+x.name+" · "+(x.distance<1000?x.distance+"m":(x.distance/1000).toFixed(1)+"km");
-  const del=document.createElement("button");del.type="button";del.className="deleteBtn";del.textContent="删除";
-  del.onclick=()=>{
-   const next=loadHistory().filter(v=>String(v.id)!==String(x.id));
-   localStorage.setItem("food_box_history",JSON.stringify(next));
-   renderHistory();
+
+function writeHistory(items) {
+  const clean = normalizeHistory(items);
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(clean));
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+function saveHistory(item) {
+  const old = loadHistory();
+  writeHistory([item, ...old.filter(x => String(x.id) !== String(item.id))]);
+  renderHistory();
+}
+
+function formatDistance(meters) {
+  const n = Number(meters) || 0;
+  return n < 1000 ? Math.round(n) + "m" : (n / 1000).toFixed(1) + "km";
+}
+
+function renderHistory() {
+  const box = $("history");
+  const items = loadHistory();
+  box.replaceChildren();
+
+  if (!items.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty";
+    empty.textContent = "还没有抽取记录";
+    box.appendChild(empty);
+    return;
+  }
+
+  items.forEach(item => {
+    const row = document.createElement("div");
+    row.className = "historyItem";
+
+    const main = document.createElement("div");
+    main.className = "historyMain";
+    main.textContent = "🍱 " + item.name + " · " + formatDistance(item.distance);
+
+    const del = document.createElement("button");
+    del.type = "button";
+    del.className = "deleteBtn";
+    del.dataset.historyId = item.id;
+    del.textContent = "删除";
+
+    row.append(main, del);
+    box.appendChild(row);
+  });
+}
+
+function deleteHistory(id) {
+  const next = loadHistory().filter(item => String(item.id) !== String(id));
+  if (!writeHistory(next)) {
+    showMessage("浏览器暂时无法修改本地记录，请允许此网站使用本地存储后重试。");
+    return;
+  }
+  renderHistory();
+  showMessage("这条记录已删除。");
+}
+
+/* 使用事件委托，避免每次重绘都创建一套独立删除逻辑 */
+$("history").addEventListener("click", event => {
+  const button = event.target.closest("[data-history-id]");
+  if (!button) return;
+  event.preventDefault();
+  event.stopPropagation();
+  deleteHistory(button.dataset.historyId);
+});
+
+$("clearHistory").addEventListener("click", event => {
+  event.preventDefault();
+  event.stopPropagation();
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
+  } catch (_) {
+    showMessage("无法清理本地记录，请检查浏览器存储权限。");
+    return;
+  }
+  renderHistory();
+  showMessage("最近抽取记录已全部清除。");
+});
+
+/* =========================================================
+   05. 地理工具
+   ========================================================= */
+function distance(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const p = Math.PI / 180;
+  const a1 = lat1 * p;
+  const a2 = lat2 * p;
+  const dl = (lat2 - lat1) * p;
+  const dg = (lng2 - lng1) * p;
+  const h = Math.sin(dl / 2) ** 2 +
+    Math.cos(a1) * Math.cos(a2) * Math.sin(dg / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
+
+async function reverseGeocode(lat, lng) {
+  const url =
+    "https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=zh-CN&lat=" +
+    encodeURIComponent(lat) + "&lon=" + encodeURIComponent(lng);
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 5000);
+
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+      cache: "no-store",
+      headers: { Accept: "application/json" }
+    });
+    if (!response.ok) throw new Error("地址解析 HTTP " + response.status);
+    return await response.json();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function getLocation() {
+  if (APP.busy) return;
+
+  if (!navigator.geolocation) {
+    showMessage("当前浏览器不支持手机定位。");
+    return;
+  }
+
+  setBusy("locateBtn", true, "📍 定位中…", "📍 获取当前位置");
+  setStatus("正在定位");
+  hideMessage();
+
+  navigator.geolocation.getCurrentPosition(
+    async position => {
+      try {
+        const lat = Number(position.coords.latitude);
+        const lng = Number(position.coords.longitude);
+        const accuracy = Math.round(Number(position.coords.accuracy) || 0);
+
+        APP.location = { lat, lng, accuracy };
+
+        $("locationText").innerHTML =
+          "GPS 已获取<br><small>坐标 " +
+          lat.toFixed(6) + "，" + lng.toFixed(6) +
+          " · 精度约 " + accuracy + " 米</small>";
+
+        setStatus("GPS已连接");
+
+        try {
+          const data = await reverseGeocode(lat, lng);
+          const address = data.display_name || "";
+          if (address) {
+            $("locationText").innerHTML =
+              "📍 " + address +
+              "<br><small>GPS 精度约 " + accuracy + " 米</small>";
+          }
+        } catch (_) {
+          /* 地址解析失败不影响 GPS */
+        }
+      } catch (error) {
+        APP.location = null;
+        showMessage("定位数据异常，请重新获取当前位置。");
+        setStatus("定位失败");
+      } finally {
+        setBusy("locateBtn", false, "📍 定位中…", "📍 重新获取当前位置");
+      }
+    },
+    error => {
+      APP.location = null;
+      const messages = {
+        1: "定位权限被拒绝，请在浏览器设置里允许定位。",
+        2: "暂时无法取得位置，请稍后重试。",
+        3: "定位超时，请再试一次。"
+      };
+      showMessage(messages[error.code] || "定位失败，请再试一次。");
+      setStatus("定位失败");
+      setBusy("locateBtn", false, "📍 定位中…", "📍 获取当前位置");
+    },
+    {
+      enableHighAccuracy: false,
+      timeout: 10000,
+      maximumAge: 30000
+    }
+  );
+}
+
+/* =========================================================
+   06. 真实商家检索
+   第一层：Nominatim
+   第二层：Overpass
+   两层并行/容错，任何一层成功即可继续
+   ========================================================= */
+function searchTerms(category) {
+  if (category === "all") return ["restaurant", "cafe", "fast food"];
+  return {
+    正餐: ["restaurant"],
+    小吃: ["fast food"],
+    烧烤: ["barbecue"],
+    火锅: ["hot pot"],
+    奶茶: ["bubble tea"],
+    甜品: ["dessert"]
+  }[category] || ["restaurant"];
+}
+
+function buildQuery() {
+  const { lat, lng } = APP.location;
+  const radius = 8000;
+  const category = APP.filters.category;
+
+  let filter = '["amenity"~"restaurant|fast_food|cafe"]';
+  if (category === "火锅") filter = '["amenity"="restaurant"]["cuisine"~"hot_pot|hotpot",i]';
+  if (category === "烧烤") filter = '["amenity"~"restaurant|fast_food"]["cuisine"~"barbecue|bbq|grill",i]';
+  if (category === "奶茶") filter = '["amenity"~"cafe|fast_food"]["cuisine"~"bubble_tea|tea",i]';
+  if (category === "甜品") filter = '["amenity"~"cafe|fast_food"]["cuisine"~"dessert|cake|ice_cream",i]';
+
+  return '[out:json][timeout:8];(nwr(around:' + radius + ',' + lat + ',' + lng + ')' + filter + ';);out center tags;';
+}
+
+function normalizePoi(item, lat, lng, category) {
+  const tags = item.tags || {};
+  const p = item.type === "node"
+    ? { lat: item.lat, lng: item.lon }
+    : { lat: item.center && item.center.lat, lng: item.center && item.center.lon };
+
+  if (!tags.name || !Number.isFinite(Number(p.lat)) || !Number.isFinite(Number(p.lng))) {
+    return null;
+  }
+
+  return {
+    id: item.type + "-" + item.id,
+    name: String(tags.name).trim(),
+    lat: Number(p.lat),
+    lng: Number(p.lng),
+    distance: Math.round(distance(lat, lng, Number(p.lat), Number(p.lng))),
+    address: [tags["addr:street"], tags["addr:housenumber"]].filter(Boolean).join(" "),
+    category: category === "all" ? (tags.cuisine || "餐饮") : category,
+    source: "nearby"
   };
-  d.append(main,del);box.appendChild(d);
- });
 }
-$("clearHistory").onclick=()=>{
- try{localStorage.removeItem("food_box_history")}catch(_){}
- renderHistory();
- showMessage("最近抽取记录已全部清除。");
-};
-function distance(a,b,c,d){
- const R=6371000,p=Math.PI/180,la1=a*p,la2=c*p,dl=(c-a)*p,dg=(d-b)*p;
- const h=Math.sin(dl/2)**2+Math.cos(la1)*Math.cos(la2)*Math.sin(dg/2)**2;
- return R*2*Math.atan2(Math.sqrt(h),Math.sqrt(1-h));
+
+function uniquePois(list) {
+  const seen = new Set();
+  return list
+    .filter(Boolean)
+    .sort((a, b) => a.distance - b.distance)
+    .filter(item => {
+      const key = item.name.toLowerCase().replace(/\s+/g, "");
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 }
-async function getLocation(){
- if(APP.busy)return;
- if(!navigator.geolocation){showMessage("当前浏览器不支持手机定位。");return}
- APP.busy=true;$("locateBtn").disabled=true;$("locateBtn").textContent="📍 定位中…";setStatus("正在定位");hideMessage();
- navigator.geolocation.getCurrentPosition(async pos=>{
-  try{
-   const lat=Number(pos.coords.latitude),lng=Number(pos.coords.longitude),acc=Math.round(Number(pos.coords.accuracy)||0);
-   APP.location={lat,lng,accuracy:acc};
-   $("locationText").innerHTML="GPS 已获取<br><small>坐标 "+lat.toFixed(6)+"，"+lng.toFixed(6)+" · 精度约 "+acc+" 米</small>";
-   setStatus("GPS已连接");
-   // 地址解析单独执行，失败不会影响定位和抽取
-   try{
-    const url="https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat="+encodeURIComponent(lat)+"&lon="+encodeURIComponent(lng)+"&zoom=18&addressdetails=1&accept-language=zh-CN";
-    const r=await fetch(url,{cache:"no-store"});
-    if(r.ok){const d=await r.json(),a=d.address||{},parts=[a.state||a.province,a.city||a.town||a.municipality||a.county,a.city_district||a.district||a.suburb,a.road,a.house_number].filter(Boolean);if(parts.length)$("locationText").innerHTML=parts.join(" · ")+"<br><small>📍 实时GPS · 精度约 "+acc+" 米</small>"}
-   }catch(_){}
-  }finally{APP.busy=false;$("locateBtn").disabled=false;$("locateBtn").textContent="📍 重新获取当前位置"}
- },err=>{
-  APP.busy=false;$("locateBtn").disabled=false;$("locateBtn").textContent="📍 重新获取当前位置";
-  const msg=err&&err.code===1?"请允许浏览器使用位置权限":err&&err.code===2?"暂时无法获取当前位置":err&&err.code===3?"定位超时，请重试":"当前位置获取失败";
-  $("locationText").textContent=msg;setStatus("等待定位");showMessage(msg);
- },{enableHighAccuracy:false,timeout:6000,maximumAge:30000});
+
+async function queryNominatim(lat, lng, term) {
+  const box = 0.12;
+  const url =
+    "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=50&addressdetails=1&dedupe=1&accept-language=zh-CN" +
+    "&q=" + encodeURIComponent(term) +
+    "&viewbox=" + encodeURIComponent(
+      (lng - box) + "," + (lat + box) + "," + (lng + box) + "," + (lat - box)
+    ) +
+    "&bounded=1";
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 6000);
+
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+      cache: "no-store",
+      headers: { Accept: "application/json" }
+    });
+    if (!response.ok) throw new Error("Nominatim HTTP " + response.status);
+
+    const data = await response.json();
+    return uniquePois(data.map(item => {
+      const la = Number(item.lat);
+      const lo = Number(item.lon);
+      if (!item.display_name || !Number.isFinite(la) || !Number.isFinite(lo)) return null;
+
+      return {
+        id: "nom-" + item.place_id,
+        name: item.name || item.display_name.split(",")[0],
+        lat: la,
+        lng: lo,
+        distance: Math.round(distance(lat, lng, la, lo)),
+        address: item.display_name,
+        category: APP.filters.category === "all" ? "餐饮" : APP.filters.category,
+        source: "nearby"
+      };
+    }));
+  } finally {
+    clearTimeout(timer);
+  }
 }
-function buildQuery(){
- const {lat,lng}=APP.location||{};
- if(!lat||!lng)throw new Error("请先获取当前位置，再抽取附近真实商家。");
- const c=APP.filters.category;
- const cf=c==="火锅"?'["cuisine"~"hotpot",i]':c==="烧烤"?'["cuisine"~"barbecue|bbq|grill",i]':c==="奶茶"?'["cuisine"~"bubble_tea|tea",i]':c==="甜品"?'["cuisine"~"dessert|ice_cream|cake",i]':c==="小吃"?'["cuisine"~"snack|fast_food",i]':"";
- return '[out:json][timeout:12];(nwr(around:5000,'+lat+','+lng+')[amenity=restaurant]'+cf+';nwr(around:5000,'+lat+','+lng+')[amenity=fast_food]'+cf+';);out center tags;';
+
+async function queryOverpass(lat, lng) {
+  const query = buildQuery();
+  const urls = [
+    "https://overpass-api.de/api/interpreter?data=" + encodeURIComponent(query),
+    "https://overpass.kumi.systems/api/interpreter?data=" + encodeURIComponent(query)
+  ];
+
+  for (const url of urls) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 7000);
+
+    try {
+      const response = await fetch(url, {
+        signal: controller.signal,
+        cache: "no-store",
+        headers: { Accept: "application/json" }
+      });
+
+      if (!response.ok) continue;
+
+      const data = await response.json();
+      const list = uniquePois(
+        (data.elements || []).map(item =>
+          normalizePoi(item, lat, lng, APP.filters.category)
+        )
+      );
+
+      if (list.length) return list;
+    } catch (_) {
+      /* 尝试下一个地图源 */
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  return [];
 }
-async function fetchNearby(){
- const lat=APP.location.lat,lng=APP.location.lng,cat=APP.filters.category;
- let last="";
- // 真实 POI 源 1：Photon（开放地图 POI 搜索）
- const photonTerms=cat==="all"?["restaurant","cafe","fast food"]:({正餐:"restaurant",小吃:"fast food",烧烤:"barbecue",火锅:"hot pot",奶茶:"bubble tea",甜品:"dessert"}[cat]||"restaurant");
- for(const term of photonTerms){
-  try{
-   const u="https://photon.komoot.io/api/?q="+encodeURIComponent(term)+"&lat="+encodeURIComponent(lat)+"&lon="+encodeURIComponent(lng)+"&limit=60&lang=zh";
-   const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),5000);
-   const r=await fetch(u,{signal:ctl.signal,cache:"no-store",headers:{Accept:"application/json"}});
-   clearTimeout(timer);
-   if(!r.ok){last="POI源 HTTP "+r.status;continue}
-   const data=await r.json(),features=Array.isArray(data.features)?data.features:[];
-   const list=features.map((f,i)=>{
-    const p=f.geometry?.coordinates||[],pr=f.properties||{};
-    const lo=Number(p[0]),la=Number(p[1]);
-    if(!Number.isFinite(la)||!Number.isFinite(lo))return null;
-    const name=pr.name||pr.street||"附近餐饮";
-    return {id:"ph-"+(pr.osm_id||i),name:String(name),lat:la,lng:lo,distance:Math.round(distance(lat,lng,la,lo)),address:[pr.street,pr.housenumber,pr.city||pr.district].filter(Boolean).join(" "),category:cat==="all"?(pr.cuisine||"餐饮"):cat,source:"nearby"};
-   }).filter(Boolean).sort((a,b)=>a.distance-b.distance);
-   const seen=new Set(),out=[];
-   for(const x of list){const k=x.name.trim().toLowerCase();if(!k||seen.has(k))continue;seen.add(k);if(x.distance<=15000)out.push(x)}
-   if(out.length)return out;
-  }catch(e){last=e.name==="AbortError"?"POI搜索超时":"POI搜索连接失败"}
- }
- // 真实 POI 源 2：Nominatim
- const terms=cat==="all"?["restaurant","cafe","fast food"]:({正餐:"restaurant",小吃:"fast food",烧烤:"barbecue",火锅:"hot pot",奶茶:"bubble tea",甜品:"dessert"}[cat]||"restaurant");
- for(const term of terms){
-  try{
-   const u="https://nominatim.openstreetmap.org/search?format=jsonv2&limit=50&addressdetails=1&dedupe=1&accept-language=zh-CN&q="+encodeURIComponent(term)+"&viewbox="+encodeURIComponent((lng-0.12)+","+ (lat+0.12)+","+ (lng+0.12)+","+ (lat-0.12))+"&bounded=1";
-   const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),5000);
-   const r=await fetch(u,{signal:ctl.signal,cache:"no-store",headers:{Accept:"application/json"}});
-   clearTimeout(timer);
-   if(!r.ok){last="地图搜索 HTTP "+r.status;continue}
-   const data=await r.json();
-   const list=data.map(x=>{
-    const la=Number(x.lat),lo=Number(x.lon);if(!x.display_name||!Number.isFinite(la)||!Number.isFinite(lo))return null;
-    return {id:"nom-"+x.place_id,name:x.name||x.display_name.split(",")[0],lat:la,lng:lo,distance:Math.round(distance(lat,lng,la,lo)),address:x.display_name,category:cat==="all"?"餐饮":cat,source:"nearby"};
-   }).filter(Boolean).sort((a,b)=>a.distance-b.distance);
-   if(list.length)return list;
-  }catch(e){last=e.name==="AbortError"?"地图搜索超时":"地图搜索连接失败"}
- }
- // 真实 POI 源 3：Overpass
- const q=buildQuery(),urls=["https://overpass-api.de/api/interpreter?data="+encodeURIComponent(q),"https://overpass.kumi.systems/api/interpreter?data="+encodeURIComponent(q)];
- for(const url of urls){
-  const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),7000);
-  try{
-   const r=await fetch(url,{signal:ctl.signal,cache:"no-store",headers:{Accept:"application/json"}});
-   if(!r.ok){last="地图源 HTTP "+r.status;continue}
-   const data=await r.json();
-   const list=(data.elements||[]).map(x=>{
-    const t=x.tags||{},p=x.type==="node"?{lat:x.lat,lon:x.lon}:{lat:x.center?.lat,lon:x.center?.lon};
-    if(!t.name||p.lat==null||p.lon==null)return null;
-    return {id:x.type+"-"+x.id,name:String(t.name),lat:p.lat,lng:p.lon,distance:Math.round(distance(lat,lng,p.lat,p.lon)),address:[t["addr:street"],t["addr:housenumber"]].filter(Boolean).join(" "),category:cat==="all"?(t.cuisine||"餐饮"):cat,source:"nearby"};
-   }).filter(Boolean).sort((a,b)=>a.distance-b.distance);
-   if(list.length)return list.slice(0,80);
-  }catch(e){last=e.name==="AbortError"?"地图源响应超时":"地图源连接失败"}finally{clearTimeout(timer)}
- }
- throw new Error(last||"暂时没有获取到附近真实商家。请确认定位后重试。");
+
+async function fetchNearby() {
+  if (!APP.location) throw new Error("请先获取当前位置。");
+
+  const { lat, lng } = APP.location;
+  const terms = searchTerms(APP.filters.category);
+
+  setStatus("正在检索真实商家");
+
+  /* 两种真实地图源并发，避免一个源卡住整个页面 */
+  const nomPromise = Promise.all(
+    terms.map(term => queryNominatim(lat, lng, term).catch(() => []))
+  ).then(groups => uniquePois(groups.flat()));
+
+  const overpassPromise = queryOverpass(lat, lng).catch(() => []);
+
+  const results = await Promise.all([nomPromise, overpassPromise]);
+  const merged = uniquePois(results.flat());
+
+  if (!merged.length) {
+    throw new Error("附近暂时没有检索到真实商家，请重新定位或换一个类别。");
+  }
+
+  /* 预算/人数没有可靠商品级价格数据时，不伪造过滤 */
+  return merged.slice(0, 100);
 }
-async function fetchDelivery(){
- if(!APP.location)throw new Error("请先获取当前位置");
- // 不依赖平台私有接口：真实附近商家就是盲盒候选池。
- // 平台只负责最后一步跳转，避免假价格、假库存、假链接。
- return null;
+
+/* =========================================================
+   07. 抽取结果
+   ========================================================= */
+function chooseRandom(list) {
+  if (!list.length) return null;
+
+  /* 优先避开最近刚抽过的商家 */
+  const recent = new Set(loadHistory().slice(0, 5).map(x => String(x.id)));
+  const fresh = list.filter(x => !recent.has(String(x.id)));
+  const pool = (fresh.length ? fresh : list).slice(0, 50);
+
+  return pool[Math.floor(Math.random() * pool.length)];
 }
-function showResult(x){
- APP.current=x;
- $("foodName").textContent=x.name||"—";
- $("addr").textContent=x.address||"地址以平台/地图为准";
- $("distance").textContent=Number(x.distance)<1000?(Number(x.distance)||0)+"m":((Number(x.distance)||0)/1000).toFixed(1)+"km";
- $("price").textContent=Number(x.price)>0?"¥"+Number(x.price).toFixed(2):"到平台查看";
- $("kind").textContent=x.category||"餐饮";
- $("sourceTag").textContent=x.source==="taobao"?"淘宝闪购真实结果":x.source==="meituan"?"美团真实结果":"真实附近商家";
- $("goMap").onclick=()=>window.open("https://www.openstreetmap.org/?mlat="+encodeURIComponent(x.lat)+"&mlon="+encodeURIComponent(x.lng||x.lon)+"#map=18/"+encodeURIComponent(x.lat)+"/"+encodeURIComponent(x.lng||x.lon),"_blank");
- $("goPlatform").onclick=async()=>{
-  if(x.url){window.open(x.url,"_blank");return}
-  const name=x.name||"附近餐厅";
-  try{await navigator.clipboard.writeText(name)}catch(_){}
-  const p=APP.filters.platform==="all"?"meituan":APP.filters.platform;
-  const links={
-   meituan:"https://waimai.meituan.com/",
-   taobao:"https://tb.ele.me/",
-   eleme:"https://tb.ele.me/",
-   jd:"https://www.jd.com/"
+
+function showResult(item) {
+  APP.current = item;
+
+  $("foodName").textContent = safeText(item.name);
+  $("addr").textContent = safeText(item.address, "地址以地图/平台显示为准");
+  $("distance").textContent = formatDistance(item.distance);
+  $("price").textContent = Number(item.price) > 0 ? "¥" + Number(item.price).toFixed(2) : "到平台查看";
+  $("kind").textContent = safeText(item.category, "餐饮");
+  $("sourceTag").textContent = "真实附近商家";
+
+  $("goMap").onclick = () => {
+    const mapUrl =
+      "https://www.openstreetmap.org/?mlat=" + encodeURIComponent(item.lat) +
+      "&mlon=" + encodeURIComponent(item.lng) +
+      "#map=18/" + encodeURIComponent(item.lat) +
+      "/" + encodeURIComponent(item.lng);
+    window.open(mapUrl, "_blank", "noopener");
   };
-  const labels={meituan:"美团外卖",taobao:"淘宝闪购",eleme:"饿了么",jd:"京东秒送"};
-  window.open(links[p],"_blank");
-  showMessage("已复制「"+name+"」，并打开"+labels[p]+"；直接粘贴店名搜索即可。");
- };
- $("result").classList.add("show");saveHistory({id:x.id,name:x.name,distance:Number(x.distance)||0});$("result").scrollIntoView({behavior:"smooth",block:"start"});
+
+  $("goPlatform").onclick = async () => {
+    const platformKey =
+      APP.filters.platform === "all" ? "meituan" : APP.filters.platform;
+    const platform = PLATFORM[platformKey] || PLATFORM.meituan;
+    const name = item.name || "附近餐厅";
+
+    try {
+      await navigator.clipboard.writeText(name);
+    } catch (_) {}
+
+    window.open(platform.url, "_blank", "noopener");
+    showMessage(
+      "已复制「" + name + "」，并打开" + platform.label +
+      "。进入后直接粘贴店名搜索即可。"
+    );
+  };
+
+  $("result").classList.add("show");
+  saveHistory({
+    id: item.id,
+    name: item.name,
+    distance: item.distance
+  });
+
+  $("result").scrollIntoView({ behavior: "smooth", block: "start" });
 }
-async function draw(){
- if(APP.busy)return;
- if(!APP.location){showMessage("请先点击「获取当前位置」。");return}
- APP.busy=true;$("draw").disabled=true;$("draw").textContent="🎲 正在抽取…";$("result").classList.remove("show");hideMessage();setStatus("正在查询");
- try{
-  let list=await fetchNearby();
-  if(!list.length)throw new Error("没有找到符合条件的真实结果。");
-  // 增加轻微随机权重：同样条件下不会总是抽到最近的一家
-  const pool=list.slice(0,Math.min(list.length,30));
-  const x=pool[Math.floor(Math.random()*pool.length)];
-  showResult(x);
-  setStatus(x.source==="taobao"?"闪购抽取完成":"附近商家抽取完成");
- }catch(e){showMessage(e.message||"抽取失败");setStatus("抽取失败")}
- finally{APP.busy=false;$("draw").disabled=false;$("draw").textContent="🎲 开始抽外卖"}
+
+/* =========================================================
+   08. 核心抽取
+   ========================================================= */
+async function draw() {
+  if (APP.busy) return;
+
+  if (!APP.location) {
+    showMessage("请先点击「获取当前位置」。");
+    return;
+  }
+
+  APP.busy = true;
+  setBusy("draw", true, "🎲 正在检索…", "🎲 开始抽外卖");
+  $("result").classList.remove("show");
+  hideMessage();
+
+  try {
+    const list = await fetchNearby();
+    const item = chooseRandom(list);
+
+    if (!item) throw new Error("没有找到符合条件的真实商家。");
+
+    showResult(item);
+    setStatus("抽取完成 · 找到 " + list.length + " 家真实商家");
+  } catch (error) {
+    console.error("draw failed:", error);
+    setStatus("检索失败");
+    showMessage(error && error.message ? error.message : "抽取失败，请重新定位后再试。");
+  } finally {
+    APP.busy = false;
+    setBusy("draw", false, "🎲 正在检索…", "🎲 开始抽外卖");
+  }
 }
-async function aiDecide(){
- if(!APP.current){showMessage("先抽出一家真实商家，再让 AI 帮你决定。");return}
- $("aiBtn").disabled=true;$("aiText").textContent="正在生成建议…";
- try{
-  const r=await fetch(WORKER+"/food",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({mode:"food",name:APP.current.name,category:APP.current.category||"餐饮",budget:APP.filters.budget,people:APP.filters.people})});
-  const j=await r.json().catch(()=>({}));
-  if(!r.ok||!j.ok)throw new Error(j.error||"AI服务暂不可用");
-  $("aiText").textContent=j.desc||j.taste||"今天就吃它，别纠结了。";
- }catch(_){$("aiText").textContent="AI服务暂时不可用，但不影响外卖抽取。"}
- finally{$("aiBtn").disabled=false}
+
+/* =========================================================
+   09. AI 建议
+   ========================================================= */
+async function aiDecide() {
+  if (!APP.current) {
+    showMessage("先抽出一家真实商家，再让 AI 帮你决定。");
+    return;
+  }
+
+  setBusy("aiBtn", true, "正在生成建议…", "让 AI 帮我决定");
+  $("aiText").textContent = "正在分析这家店…";
+
+  try {
+    const response = await fetch(WORKER + "/food", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        mode: "food",
+        name: APP.current.name,
+        category: APP.current.category || "餐饮",
+        budget: APP.filters.budget,
+        people: APP.filters.people
+      })
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || "AI服务暂不可用");
+    }
+
+    $("aiText").textContent =
+      data.desc || data.taste || "今天就吃它，别纠结了。";
+  } catch (error) {
+    console.error("AI failed:", error);
+    $("aiText").textContent =
+      "AI暂时不可用，但不影响真实商家检索和抽取。";
+  } finally {
+    setBusy("aiBtn", false, "正在生成建议…", "让 AI 帮我决定");
+  }
 }
-$("locateBtn").onclick=getLocation;$("draw").onclick=draw;$("again").onclick=draw;$("aiBtn").onclick=aiDecide;
-renderFilters();renderHistory();
-window.addEventListener("error",e=>{console.error("App error:",e.message);setStatus("页面已加载 · 某项服务异常")});
-window.addEventListener("unhandledrejection",e=>{console.error("Unhandled:",e.reason);setStatus("页面已加载 · 某项服务异常")});
+
+/* =========================================================
+   10. 统一事件入口
+   ========================================================= */
+$("locateBtn").addEventListener("click", getLocation);
+$("draw").addEventListener("click", draw);
+$("again").addEventListener("click", draw);
+$("aiBtn").addEventListener("click", aiDecide);
+
+window.addEventListener("error", event => {
+  console.error("App error:", event.error || event.message);
+  setStatus("页面已加载 · 个别服务异常");
+});
+
+window.addEventListener("unhandledrejection", event => {
+  console.error("Unhandled promise:", event.reason);
+  setStatus("页面已加载 · 个别服务异常");
+});
+
+/* =========================================================
+   11. 初始化
+   ========================================================= */
+renderFilters();
+renderHistory();
+setStatus("页面已就绪");
 </script>
 </body>
 </html>
