@@ -16,7 +16,7 @@
     <div class="status" id="status">正在检测外卖源…</div>
   </div>
 
-  <section class="card" style="margin-bottom:14px"><div class="label">📍 所在位置</div><div id="locationText" class="notice">正在获取所在城市…</div></section>\n\n  <section class="card" style="margin-bottom:14px"><div class="label">📍 所在位置</div><div style="display:flex;gap:8px"><button class="chip active" id="locBtn" style="flex:1">自动获取当前位置</button><div id="locText" style="flex:2;padding:9px 12px;border:1px solid #e5dcd6;border-radius:999px;color:#8f8179;font-size:12px">抽外卖前会自动定位</div></div></section>\n\n  <section class="hero">
+  <section class="card" style="margin-bottom:14px"><div class="label">📍 所在位置</div><div style="display:flex;gap:8px;align-items:center"><button class="chip active" id="locBtn" style="flex:0 0 auto">重新定位</button><div id="locText" style="flex:1;padding:9px 12px;border:1px solid #e5dcd6;border-radius:999px;color:#8f8179;font-size:12px">正在请求手机定位权限…</div></div><div id="locationText" class="notice" style="margin-top:8px">首次使用需要允许浏览器访问“所在位置”。</div></section>\n\n  <section class="hero">
     <div style="font-size:42px">🎁</div>
     <h1>今天吃什么？</h1>
     <p>不用纠结，让盲盒替你决定。</p>
@@ -108,28 +108,43 @@ const state={platform:"all",budget:"all",category:"all",people:"all",current:nul
 function $(id){return document.getElementById(id)}
 function bindChips(id,key){document.querySelectorAll("#"+id+" .chip").forEach(b=>b.onclick=()=>{document.querySelectorAll("#"+id+" .chip").forEach(x=>x.classList.remove("active"));b.classList.add("active");state[key]=b.dataset.v})}
 bindChips("platform","platform");bindChips("budget","budget");bindChips("category","category");bindChips("people","people");
-async function loadLocation(){
+async function loadLocation(lat=null,lng=null){
  try{
-  const r=await fetch(WORKER+"/location",{cache:"no-store"}); const j=await r.json();
+  const endpoint=lat!=null&&lng!=null
+    ? WORKER+"/location?lat="+encodeURIComponent(lat)+"&lng="+encodeURIComponent(lng)
+    : WORKER+"/location";
+  const r=await fetch(endpoint,{cache:"no-store"}); const j=await r.json();
   state.location=j;
   if(j.ok){
-   const label=[j.city,j.region,j.country].filter(Boolean).join(" · ");
-   $("locationText").textContent=label||"未识别所在城市";
+   const label=[j.address,j.district,j.city,j.region].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(" · ");
+   $("locationText").textContent=label||([j.city,j.region].filter(Boolean).join(" · ")||"已获取当前位置");
    return j;
   }
  }catch(e){}
- $("locationText").textContent="暂时无法获取所在城市";
+ $("locationText").textContent="已获取经纬度，但暂时无法解析地址";
  return null;
 }
 async function getLocation(){
- if(state.locationReady)return true;
- if(!navigator.geolocation) throw new Error("当前浏览器不支持定位，请换手机浏览器打开");
- $("locText").textContent="正在获取当前位置…";
- return await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(pos=>{
-  state.latitude=pos.coords.latitude;state.longitude=pos.coords.longitude;state.locationReady=true;$("locText").textContent="已获取当前位置";$("status").textContent="位置已获取";resolve(true);
- },()=>{ $("locText").textContent="定位失败，请允许浏览器定位权限";reject(new Error("需要允许“所在位置”权限，才能匹配附近真实外卖"));},{enableHighAccuracy:true,timeout:10000,maximumAge:300000}));
+ if(!navigator.geolocation) throw new Error("当前浏览器不支持手机定位，请用手机系统浏览器打开");
+ $("locText").textContent="正在请求手机定位权限…";
+ return await new Promise((resolve,reject)=>{
+  navigator.geolocation.getCurrentPosition(async pos=>{
+   state.latitude=pos.coords.latitude;state.longitude=pos.coords.longitude;
+   state.locationReady=true;
+   $("locText").textContent="手机定位成功 · 精度约"+Math.round(pos.coords.accuracy||0)+"米";
+   $("status").textContent="当前位置已获取";
+   await loadLocation(state.latitude,state.longitude);
+   resolve(true);
+  },err=>{
+   const msg=err.code===1?"请在手机系统/浏览器设置中允许本站访问“所在位置”"
+    :err.code===2?"手机暂时无法取得定位，请打开系统定位/GPS后重试"
+    :"定位超时，请打开手机定位后重试";
+   $("locText").textContent=msg;
+   reject(new Error(msg));
+  },{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+ });
 }
-async function checkDeliverySource(){ $("status").textContent="等待定位"; return true; }
+async function checkDeliverySource(){ $("status").textContent="等待手机定位"; return true; }
 async function fetchLive(){
  const p=state.platform==="meituan"?"meituan":"taobao";
  await getLocation();
@@ -175,7 +190,7 @@ $("aiBtn").onclick=async()=>{
   const j=await r.json();$("aiText").textContent=j.reason||"今天就吃它，别纠结了。";
  }catch(e){$("aiText").textContent="今天就吃它，别纠结了。"}finally{$("aiBtn").disabled=false}
 };
-renderHistory();\nloadLocation().then(()=>checkDeliverySource());
+renderHistory();\ncheckDeliverySource();\ngetLocation().catch(()=>{});
 </script>
 </body>
 </html>
