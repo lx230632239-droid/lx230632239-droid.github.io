@@ -190,7 +190,7 @@ $("aiBtn").onclick=async()=>{
   const j=await r.json();$("aiText").textContent=j.reason||"今天就吃它，别纠结了。";
  }catch(e){$("aiText").textContent="今天就吃它，别纠结了。"}finally{$("aiBtn").disabled=false}
 };
-renderHistory();\ncheckDeliverySource();\ngetLocation().catch(()=>{});
+renderHistory();
 </script>
 </body>
 </html>
