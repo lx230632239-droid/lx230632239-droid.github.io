@@ -141,13 +141,20 @@ async function checkDeliverySource(){
 }
 async function fetchLive(){
  if(!state.location?.latitude||!state.location?.longitude) throw new Error("请先获取手机当前位置");
- const qs=new URLSearchParams({lat:state.location.latitude,lng:state.location.longitude,radius:"5000",category:state.category==="all"?"":state.category});
- const r=await fetch(WORKER+"/nearby?"+qs.toString(),{cache:"no-store"});
- const j=await r.json();
- if(!r.ok||!j.ok) throw new Error(j.error||"附近真实商家源暂不可用");
- let list=Array.isArray(j.results)?j.results:[];
- if(state.budget!=="all") list=list.filter(x=>true);
- return list;
+ const lat=Number(state.location.latitude),lng=Number(state.location.longitude),radius=5000;
+ const category=state.category==="all"?"":state.category;
+ const categoryFilter=category==="火锅"?'["cuisine"~"hotpot",i]':category==="烧烤"?'["cuisine"~"barbecue|bbq|grill",i]':category==="奶茶"?'["cuisine"~"bubble_tea|tea",i]':category==="甜品"?'["cuisine"~"dessert|ice_cream|cake",i]':category==="小吃"?'["cuisine"~"snack|fast_food",i]':'';
+ const q='[out:json][timeout:12];(nwr(around:'+radius+','+lat+','+lng+')[amenity=restaurant]'+categoryFilter+';nwr(around:'+radius+','+lat+','+lng+')[amenity=fast_food]'+categoryFilter+';);out center tags;';
+ const endpoints=["https://overpass-api.de/api/interpreter","https://overpass.kumi.systems/api/interpreter"];
+ let data=null;
+ for(const endpoint of endpoints){
+  try{const r=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"text/plain;charset=UTF-8"},body:q});if(r.ok){data=await r.json();break;}}catch(e){}
+ }
+ if(!data) throw new Error("附近真实商家源暂时不可用，请稍后重试");
+ const hav=(a,b,c,d)=>{const R=6371000,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,z=Math.sin(x/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2;return R*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z));};
+ const list=(data.elements||[]).map(x=>{const t=x.tags||{},p=x.type==="node"?{lat:x.lat,lon:x.lon}:{lat:x.center?.lat,lon:x.center?.lon};if(!t.name||p.lat==null||p.lon==null)return null;const d=Math.round(hav(lat,lng,p.lat,p.lon));const cuisine=String(t.cuisine||"");const cat=category||(cuisine||(t.amenity==="fast_food"?"小吃":"正餐"));const map="https://www.openstreetmap.org/?mlat="+encodeURIComponent(p.lat)+"&mlon="+encodeURIComponent(p.lon)+"#map=19/"+encodeURIComponent(p.lat)+"/"+encodeURIComponent(p.lon);return {source:"nearby",id:String(x.type)+"-"+String(x.id),name:String(t.name),price:0,originalPrice:0,discount:"",image:String(t.image||""),sales:"",stock:"",shops:1,category:cat,distance:d,url:map,lat:p.lat,lng:p.lon,address:[t["addr:street"],t["addr:housenumber"]].filter(Boolean).join(" ")}}).filter(Boolean).sort((a,b)=>a.distance-b.distance);
+ const out=[],seen=new Set();for(const x of list){const k=x.name.toLowerCase();if(!seen.has(k)){seen.add(k);out.push(x)}if(out.length>=40)break}
+ return out;
 }
 function saveHistory(x){state.history=[x,...state.history.filter(y=>y.name!==x.name)].slice(0,8);localStorage.setItem("delivery_history_v1",JSON.stringify(state.history));renderHistory()}
 function renderHistory(){$("history").innerHTML=state.history.length?state.history.map(x=>"<div>"+x.emoji+" <b>"+x.name+"</b> · "+(x.shops?("适用"+x.shops+"家门店"):"")+" · ¥"+x.price+"</div>").join(""):'<div class="empty">还没有抽取记录</div>'}
