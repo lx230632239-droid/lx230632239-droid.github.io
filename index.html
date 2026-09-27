@@ -3,218 +3,201 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#fff8f2">
+<meta name="theme-color" content="#f7f3ef">
 <title>吃点啥？· 外卖盲盒</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f7f4f1;color:#241c18;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}.app{max-width:760px;margin:auto;padding:14px 14px 70px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.brand{font-size:22px;font-weight:950}.sub{font-size:12px;color:#9a8d86;margin-top:3px}.status{font-size:11px;padding:7px 10px;border-radius:999px;background:#fff;border:1px solid #eadfd8}.hero{background:linear-gradient(135deg,#fff,#fff1e7);border:1px solid #eaded6;border-radius:24px;padding:22px 18px;text-align:center;box-shadow:0 12px 35px #5d38210d}.hero h1{font-size:30px;margin:4px 0 7px}.hero p{margin:0;color:#8f8179;font-size:13px}.filters{margin-top:14px;display:grid;gap:12px}.card{background:#fff;border:1px solid #ebe3de;border-radius:18px;padding:14px}.label{font-weight:850;font-size:13px;margin-bottom:9px}.chips{display:flex;gap:8px;flex-wrap:wrap}.chip{border:1px solid #e5dcd6;background:#fff;color:#6e625c;border-radius:999px;padding:8px 12px;font-size:12px}.chip.active{background:#241c18;color:#fff;border-color:#241c18}.draw{width:100%;margin-top:15px;border:0;border-radius:18px;padding:17px;background:linear-gradient(135deg,#ff7f61,#f0a15f);color:#fff;font-size:18px;font-weight:950;box-shadow:0 12px 25px #df795533}.draw:active{transform:scale(.98)}.draw.loading{opacity:.7}.stage{display:none;margin-top:14px;background:#17120f;color:#fff;border-radius:20px;padding:24px 15px;text-align:center;overflow:hidden}.stage.show{display:block}.slot{font-size:50px;display:inline-block;animation:spin 1s linear infinite}.stage h2{margin:8px 0 4px}.stage p{margin:0;color:#c8bcb5;font-size:12px}@keyframes spin{to{transform:rotate(360deg)}}.result{display:none;margin-top:14px}.result.show{display:block}.winner{background:#fff;border-radius:22px;border:1px solid #eadfd8;overflow:hidden;box-shadow:0 14px 40px #5d38210d}.cover{height:180px;background:linear-gradient(135deg,#fff0e8,#f3e7df);display:flex;align-items:center;justify-content:center;font-size:72px;overflow:hidden}.cover img{width:100%;height:100%;object-fit:cover;display:block}.body{padding:17px}.tag{display:inline-block;background:#fff0e9;color:#d55f49;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:800}.name{font-size:25px;font-weight:950;margin:9px 0 4px}.shop{font-size:14px;color:#746861}.meta{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}.meta div{background:#f8f5f2;border-radius:12px;padding:10px 6px;text-align:center;font-size:12px}.meta b{display:block;font-size:15px;margin-bottom:3px}.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.action{border:0;border-radius:14px;padding:13px;font-weight:900}.meituan{background:#fff0c8;color:#6e4b00}.taobao{background:#ffe5dc;color:#c74728}.ghost{width:100%;margin-top:10px;border:1px solid #e6ddd7;background:#fff;border-radius:14px;padding:12px;font-weight:800}.section{margin-top:14px}.section h3{font-size:14px;margin:0 0 9px}.history{display:grid;gap:8px}.history div{background:#fff;border:1px solid #eee6e1;border-radius:13px;padding:11px;font-size:12px}.notice{font-size:11px;color:#9a8d86;line-height:1.6}.empty{text-align:center;color:#9a8d86;padding:20px 5px}.hidden{display:none!important}
+*{box-sizing:border-box}body{margin:0;background:#f6f3f0;color:#241c18;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}.app{max-width:760px;margin:auto;padding:14px 14px 60px}.top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:14px}.brand{font-size:22px;font-weight:900}.sub{font-size:12px;color:#9a8d86;margin-top:3px}.status{font-size:11px;padding:7px 10px;border-radius:999px;background:#fff;border:1px solid #e8dfd9;white-space:nowrap}.hero{background:linear-gradient(135deg,#fff,#fff0e6);border:1px solid #eaded6;border-radius:24px;padding:22px 18px;text-align:center;box-shadow:0 10px 28px #5d382110}.heroIcon{font-size:42px}.hero h1{font-size:29px;margin:4px 0 7px}.hero p{margin:0;color:#8f8179;font-size:13px}.section{margin-top:14px}.card{background:#fff;border:1px solid #e9e1dc;border-radius:18px;padding:14px}.sectionTitle{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.sectionTitle b{font-size:14px}.sectionTitle span{font-size:11px;color:#a09189}.locationBox{background:#faf7f4;border-radius:14px;padding:12px;font-size:13px;line-height:1.7;min-height:54px}.locationBox small{color:#9a8d86}.btn{width:100%;border:1px solid #e4d9d2;background:#fff;border-radius:13px;padding:12px;font-weight:800;margin-top:9px}.btn:disabled{opacity:.55}.filters{display:grid;gap:10px}.filter{padding:13px;background:#fff;border:1px solid #e9e1dc;border-radius:16px}.label{font-size:13px;font-weight:850;margin-bottom:9px}.chips{display:flex;gap:7px;flex-wrap:wrap}.chip{border:1px solid #e4dcd6;background:#fff;color:#6e625c;border-radius:999px;padding:8px 11px;font-size:12px}.chip.active{background:#241c18;color:#fff;border-color:#241c18}.draw{width:100%;margin-top:14px;border:0;border-radius:17px;padding:16px;background:linear-gradient(135deg,#ff7f61,#efa05d);color:#fff;font-size:18px;font-weight:900;box-shadow:0 10px 24px #df79552e}.draw:disabled{opacity:.6}.message{margin-top:10px;padding:11px 12px;border-radius:12px;background:#faf7f4;color:#806f66;font-size:12px;line-height:1.6;display:none}.message.show{display:block}.result{display:none}.result.show{display:block}.winner{background:#fff;border:1px solid #e9e1dc;border-radius:20px;overflow:hidden}.cover{height:170px;background:linear-gradient(135deg,#fff0e8,#f2e6dd);display:flex;align-items:center;justify-content:center;font-size:65px}.body{padding:16px}.tag{display:inline-block;background:#fff0e9;color:#d55f49;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:800}.name{font-size:24px;font-weight:950;margin:9px 0 3px}.addr{font-size:13px;color:#766a63;line-height:1.5}.meta{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}.meta div{background:#f8f5f2;border-radius:11px;padding:9px 5px;text-align:center;font-size:11px}.meta b{display:block;font-size:14px;margin-bottom:3px}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.action{border:0;border-radius:13px;padding:12px;font-weight:850}.map{background:#f0eee9;color:#4e463f}.platform{background:#fff0e8;color:#c6533d}.ai{margin-top:14px}.aiText{font-size:12px;line-height:1.7;color:#776a62;background:#faf7f4;border-radius:12px;padding:11px}.history{display:grid;gap:8px}.historyItem{background:#faf7f4;border-radius:12px;padding:10px 11px;font-size:12px}.empty{text-align:center;color:#a09189;padding:15px}.notice{font-size:11px;color:#9a8d86;line-height:1.7}.hidden{display:none!important}.spin{animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}@media(max-width:480px){.top{align-items:flex-start}.status{max-width:120px;overflow:hidden;text-overflow:ellipsis}.hero h1{font-size:27px}}
 </style>
 </head>
 <body>
-<div class="app">
-  <div class="top">
-    <div><div class="brand">🍱 吃点啥？</div><div class="sub">真实外卖 · 随机盲盒</div></div>
-    <div class="status" id="status">正在检测外卖源…</div>
-  </div>
+<main class="app">
+<header class="top">
+  <div><div class="brand">🍱 吃点啥？</div><div class="sub">真实附近餐饮 · 随机盲盒</div></div>
+  <div class="status" id="status">页面已就绪</div>
+</header>
 
-  <section class="card" style="margin-bottom:14px"><div class="label">📍 所在位置</div><div id="locationText" class="notice">尚未获取手机当前位置</div><button class="ghost" id="locateBtn">📍 获取当前位置</button></section>
+<section class="hero"><div class="heroIcon">🎁</div><h1>今天吃什么？</h1><p>先选条件，再让盲盒替你决定。</p></section>
 
-  <section class="hero">
-    <div style="font-size:42px">🎁</div>
-    <h1>今天吃什么？</h1>
-    <p>不用纠结，让盲盒替你决定。</p>
-  </section>
+<section class="section card">
+  <div class="sectionTitle"><b>① 当前位置</b><span>可选，不会阻塞页面</span></div>
+  <div class="locationBox" id="locationText">尚未获取当前位置</div>
+  <button class="btn" id="locateBtn">📍 获取当前位置</button>
+</section>
 
+<section class="section">
+  <div class="sectionTitle"><b>② 吃什么条件</b><span>分组选择</span></div>
   <div class="filters">
-    <section class="card">
-      <div class="label">平台</div>
-      <div class="chips" id="platform">
-        <button class="chip active" data-v="all">全部</button>
-        <button class="chip" data-v="meituan">美团</button>
-        <button class="chip" data-v="taobao">淘宝闪购</button>
-      </div>
-    </section>
-    <section class="card">
-      <div class="label">预算</div>
-      <div class="chips" id="budget">
-        <button class="chip active" data-v="all">不限</button>
-        <button class="chip" data-v="20">¥20以内</button>
-        <button class="chip" data-v="40">¥40以内</button>
-        <button class="chip" data-v="60">¥60以内</button>
-        <button class="chip" data-v="100">¥100以内</button>
-      </div>
-    </section>
-    <section class="card">
-      <div class="label">想吃什么</div>
-      <div class="chips" id="category">
-        <button class="chip active" data-v="all">随便</button>
-        <button class="chip" data-v="正餐">正餐</button>
-        <button class="chip" data-v="小吃">小吃</button>
-        <button class="chip" data-v="烧烤">烧烤</button>
-        <button class="chip" data-v="火锅">火锅</button>
-        <button class="chip" data-v="奶茶">奶茶</button>
-        <button class="chip" data-v="甜品">甜品</button>
-      </div>
-    </section>
+    <div class="filter"><div class="label">平台偏好</div><div class="chips" id="platform"></div></div>
+    <div class="filter"><div class="label">预算</div><div class="chips" id="budget"></div></div>
+    <div class="filter"><div class="label">类别</div><div class="chips" id="category"></div></div>
+    <div class="filter"><div class="label">人数</div><div class="chips" id="people"></div></div>
   </div>
-    <section class="card">
-      <div class="label">几个人吃</div>
-      <div class="chips" id="people">
-        <button class="chip active" data-v="all">不限</button>
-        <button class="chip" data-v="single">单人餐</button>
-        <button class="chip" data-v="double">双人餐</button>
-        <button class="chip" data-v="2-3">2–3人餐</button>
-        <button class="chip" data-v="6-8">6–8人餐</button>
-      </div>
-    </section>
+</section>
 
+<section class="section">
   <button class="draw" id="draw">🎲 开始抽外卖</button>
-  <section class="stage" id="stage"><div class="slot">🎁</div><h2 id="stageTitle">正在寻找外卖……</h2><p id="stageText">筛选真实商家 · 随机盲盒</p></section>
+  <div class="message" id="message"></div>
+</section>
 
-  <section class="result" id="result">
-    <div class="winner">
-      <div class="cover" id="cover">🍜</div>
-      <div class="body">
-        <span class="tag" id="sourceTag">外卖盲盒</span>
-        <div class="name" id="foodName">—</div>
-        <div class="shop" id="shopName">—</div>
-        <div class="meta"><div><b id="price">—</b>优惠价</div><div><b id="originalPrice">—</b>原价</div><div><b id="discount">—</b>折扣</div></div><div class="meta"><div><b id="shops">—</b>适用门店</div><div><b id="sales">—</b>销量</div><div><b id="stock">—</b>库存</div></div>
-        <div class="actions">
-          <button class="action meituan" id="goMeituan">🟢 去美团</button>
-          <button class="action taobao" id="goTaobao">🟠 去淘宝闪购</button>
-        </div>
-        <button class="ghost" id="again">🎲 再抽一次</button>
+<section class="section result" id="result">
+  <div class="winner">
+    <div class="cover" id="cover">🍱</div>
+    <div class="body">
+      <span class="tag" id="sourceTag">真实附近商家</span>
+      <div class="name" id="foodName">—</div>
+      <div class="addr" id="addr">—</div>
+      <div class="meta">
+        <div><b id="distance">—</b>距离</div>
+        <div><b id="price">—</b>价格</div>
+        <div><b id="kind">—</b>类别</div>
       </div>
+      <div class="actions">
+        <button class="action map" id="goMap">🗺️ 查看地图</button>
+        <button class="action platform" id="goPlatform">🔎 查看平台</button>
+      </div>
+      <button class="btn" id="again">🎲 再抽一次</button>
     </div>
-    <div class="section card">
-      <h3>🤖 AI 帮我决定</h3>
-      <div id="aiText" class="notice">抽出真实外卖后，AI 可以帮你解释为什么今天适合吃它。</div>
-      <button class="ghost" id="aiBtn">让 AI 帮我决定</button>
-    </div>
-  </section>
+  </div>
 
-  <section class="section card">
-    <h3>🕘 最近抽过</h3>
-    <div id="history" class="history"><div class="empty">还没有抽取记录</div></div>
-  </section>
+  <div class="card ai">
+    <div class="sectionTitle"><b>③ AI 帮我决定</b><span>抽中后使用</span></div>
+    <div class="aiText" id="aiText">抽中商家后，AI 可以帮你快速给出选择理由。</div>
+    <button class="btn" id="aiBtn">让 AI 帮我决定</button>
+  </div>
+</section>
 
-  <section class="section card notice">
-    <b>接入说明</b><br>
-    当前页面使用手机 GPS 获取真实附近餐饮商家；价格、配送费等没有可靠来源时不会编造。商家详情通过地图查看。数据来源：OpenStreetMap。
-  </section>
-</div>
+<section class="section card">
+  <div class="sectionTitle"><b>④ 最近抽过</b><span>本机保存</span></div>
+  <div class="history" id="history"></div>
+</section>
+
+<section class="section card notice">
+  <b>数据说明</b><br>
+  核心抽取使用真实附近餐饮地图数据，不编造价格、销量或库存。当前版本把“实时外卖平台菜单/优惠”与“附近真实商家”严格分开；美团、淘宝闪购官方实时菜单需要对应平台开放接口权限，不能用假数据冒充。
+</section>
+</main>
 
 <script>
-const WORKER="";
-function safeHistory(){try{const v=JSON.parse(localStorage.getItem("delivery_history_v1")||"[]");return Array.isArray(v)?v:[]}catch(e){try{localStorage.removeItem("delivery_history_v1")}catch(_){}return []}}
-const state={platform:"all",budget:"all",category:"all",people:"all",current:null,location:null,history:safeHistory()};
-function $(id){return document.getElementById(id)}
-function bindChips(id,key){document.querySelectorAll("#"+id+" .chip").forEach(b=>b.onclick=()=>{document.querySelectorAll("#"+id+" .chip").forEach(x=>x.classList.remove("active"));b.classList.add("active");state[key]=b.dataset.v})}
-bindChips("platform","platform");bindChips("budget","budget");bindChips("category","category");bindChips("people","people");
-let locationBusy=false;
-function getLocation(){
- const btn=$("locateBtn");
- if(locationBusy)return;
- if(!navigator.geolocation){$("locationText").textContent="当前浏览器不支持手机定位";return}
- locationBusy=true;
- if(btn){btn.disabled=true;btn.textContent="📍 正在定位…"}
- $("locationText").innerHTML="正在获取当前位置…<br><span>请允许浏览器使用位置权限</span>";
- const finish=()=>{locationBusy=false;if(btn){btn.disabled=false;btn.textContent="📍 重新获取当前位置"}};
- navigator.geolocation.getCurrentPosition(async pos=>{
-   try{
-    const lat=Number(pos.coords.latitude),lng=Number(pos.coords.longitude),accuracy=Number(pos.coords.accuracy)||0;
-    state.location={latitude:lat,longitude:lng,accuracy};
-    $("locationText").innerHTML="GPS已获取 · 纬度 "+lat.toFixed(6)+" · 经度 "+lng.toFixed(6)+"<br><span>📍 当前精度约 "+Math.round(accuracy)+" 米</span>";
-    $("status").textContent=accuracy>100?"GPS已连接 · 精度较弱":"GPS已连接 · 实时定位";
-    try{
-      const u="https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat="+encodeURIComponent(lat)+"&lon="+encodeURIComponent(lng)+"&zoom=18&addressdetails=1&accept-language=zh-CN";
-      const r=await fetch(u,{cache:"no-store",headers:{"Accept":"application/json"}});
-      if(r.ok){
-       const d=await r.json(),ad=d.address||{};
-       const parts=[ad.state||ad.province,ad.city||ad.town||ad.municipality||ad.county,ad.city_district||ad.district||ad.suburb,ad.road,ad.house_number].filter(Boolean);
-       if(parts.length)$("locationText").innerHTML=parts.join(" · ")+"<br><span>📍 实时GPS · 精度约 "+Math.round(accuracy)+" 米</span>";
-      }
-    }catch(_){}
-   }finally{finish()}
- },err=>{
-   const m=err&&err.code===1?"请允许浏览器使用位置权限":err&&err.code===2?"暂时无法获取当前位置":err&&err.code===3?"定位超时，请重试":"当前位置获取失败";
-   $("locationText").textContent=m;
-   $("status").textContent="等待手机定位";
-   finish();
- },{enableHighAccuracy:false,timeout:6000,maximumAge:30000});
- setTimeout(()=>{if(locationBusy){locationBusy=false;if(btn){btn.disabled=false;btn.textContent="📍 重新获取当前位置"}$("locationText").textContent="定位超过6秒，请检查手机定位权限后重试";$("status").textContent="等待手机定位"}},7000);
-}
-async function checkDeliverySource(){
- $("status").textContent=state.location?"GPS已连接 · 真实商家源可用":"等待手机定位";
- return !!state.location;
-}
-async function fetchLive(){
- if(!state.location?.latitude||!state.location?.longitude) throw new Error("请先获取手机当前位置");
- const lat=Number(state.location.latitude),lng=Number(state.location.longitude),radius=5000;
- const category=state.category==="all"?"":state.category;
- const categoryFilter=category==="火锅"?'["cuisine"~"hotpot",i]':category==="烧烤"?'["cuisine"~"barbecue|bbq|grill",i]':category==="奶茶"?'["cuisine"~"bubble_tea|tea",i]':category==="甜品"?'["cuisine"~"dessert|ice_cream|cake",i]':category==="小吃"?'["cuisine"~"snack|fast_food",i]':'';
- const q='[out:json][timeout:25];(nwr(around:'+radius+','+lat+','+lng+')[amenity=restaurant]'+categoryFilter+';nwr(around:'+radius+','+lat+','+lng+')[amenity=fast_food]'+categoryFilter+';);out center tags;';
- const endpoints=["https://overpass-api.de/api/interpreter","https://overpass.kumi.systems/api/interpreter"];
- let data=null,lastError="";
- for(const endpoint of endpoints){
-  try{
-   const r=await fetch(endpoint+"?data="+encodeURIComponent(q),{method:"GET",headers:{"Accept":"application/json"}});
-   if(r.ok){data=await r.json();break}
-   lastError="数据源HTTP "+r.status;
-  }catch(e){lastError="数据源连接失败"}
- }
- if(!data) throw new Error(lastError||"附近真实商家源暂时不可用");
- const hav=(a,b,c,d)=>{const R=6371000,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,z=Math.sin(x/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2;return R*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z))};
- const list=(data.elements||[]).map(x=>{
-  const t=x.tags||{},p=x.type==="node"?{lat:x.lat,lon:x.lon}:{lat:x.center?.lat,lon:x.center?.lon};
-  if(!t.name||p.lat==null||p.lon==null)return null;
-  const d=Math.round(hav(lat,lng,p.lat,p.lon)),cuisine=String(t.cuisine||"");
-  const cat=category||(cuisine||(t.amenity==="fast_food"?"小吃":"正餐"));
-  const map="https://www.openstreetmap.org/?mlat="+encodeURIComponent(p.lat)+"&mlon="+encodeURIComponent(p.lon)+"#map=19/"+encodeURIComponent(p.lat)+"/"+encodeURIComponent(p.lon);
-  return {source:"nearby",id:String(x.type)+"-"+String(x.id),name:String(t.name),price:0,originalPrice:0,discount:"",image:String(t.image||""),sales:"",stock:"",shops:1,category:cat,distance:d,url:map,lat:p.lat,lng:p.lon,address:[t["addr:street"],t["addr:housenumber"]].filter(Boolean).join(" ")};
- }).filter(Boolean).sort((a,b)=>a.distance-b.distance);
- const out=[],seen=new Set();
- for(const x of list){const k=x.name.toLowerCase();if(!seen.has(k)){seen.add(k);out.push(x)}if(out.length>=40)break}
- return out;
-}
-function saveHistory(x){state.history=[x,...state.history.filter(y=>y.name!==x.name)].slice(0,8);localStorage.setItem("delivery_history_v1",JSON.stringify(state.history));renderHistory()}
-function renderHistory(){$("history").innerHTML=state.history.length?state.history.map(x=>"<div>"+x.emoji+" <b>"+x.name+"</b> · "+(x.shops?("适用"+x.shops+"家门店"):"")+" · ¥"+x.price+"</div>").join(""):'<div class="empty">还没有抽取记录</div>'}
-function showResult(x){
- state.current=x;$("cover").innerHTML=x.image?`<img src="${x.image}" alt="">`:(x.emoji||"🍱");$("sourceTag").textContent="GPS附近真实商家";
- $("foodName").textContent=x.name;$("shopName").textContent=x.shops?"适用 "+x.shops+" 家门店":"淘宝闪购餐饮商品";$("price").textContent=x.price?"¥"+x.price:"到平台查看";$("originalPrice").textContent=x.originalPrice?"¥"+x.originalPrice:"—";$("discount").textContent=x.discount?x.discount+"折":"—";$("shops").textContent=x.shops||"1";$("sales").textContent=x.sales||"—";$("stock").textContent=x.distance!=null?(x.distance<1000?x.distance+"m":(x.distance/1000).toFixed(1)+"km"):"—";
- $("goMeituan").classList.remove("hidden");$("goTaobao").classList.remove("hidden");
- $("result").classList.add("show");$("result").scrollIntoView({behavior:"smooth",block:"start"});saveHistory(x);
-}
-async function draw(){
- $("draw").disabled=true;$("draw").classList.add("loading");$("stage").classList.add("show");$("result").classList.remove("show");
- try{
-  $("stageTitle").textContent="正在连接外卖源……";await new Promise(r=>setTimeout(r,260));
-  const list=await fetchLive();
-  if(!list.length) throw new Error(state.platform==="meituan"?"美团官方实时接口尚未接入":"当前条件没有可抽取的实时外卖");
-  $("stageTitle").textContent="正在随机盲盒……";await new Promise(r=>setTimeout(r,700));
-  const x=list[Math.floor(Math.random()*list.length)];
-  showResult({...x,emoji:"🍱",category:x.category||"正餐"});
-  $("status").textContent="真实附近商家";
- }catch(e){
-  $("status").textContent="外卖源暂不可用";
-  alert(e.message||"外卖源暂时不可用，请稍后再试");
- }finally{
-  $("stage").classList.remove("show");$("draw").disabled=false;$("draw").classList.remove("loading");
- }
-}
-async function openProvider(type){const x=state.current;if(!x)return;if(x.url){window.open(x.url,"_blank");return;}try{const r=await fetch(WORKER+"/delivery/detail?item_id="+encodeURIComponent(x.id),{cache:"no-store"});const j=await r.json();if(!r.ok||!j.ok)throw new Error(j.error||"暂无官方跳转链接");if(j.url)window.open(j.url,"_blank");else alert("该商品暂未返回可用的官方跳转链接。");}catch(e){alert(e.message||"暂时无法打开淘宝闪购");}}
-$("draw").onclick=draw;$("again").onclick=draw;$("goMeituan").onclick=()=>openProvider("meituan");$("goTaobao").onclick=()=>openProvider("taobao");
-$("aiBtn").onclick=async()=>{
- const x=state.current;if(!x)return;
- $("aiText").textContent="AI 正在帮你判断……";$("aiBtn").disabled=true;
- try{
-  const r=await fetch(WORKER+"/food",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({mode:"decide",candidates:[{n:x.name,cat:x.category,region:x.shops||""}],people:state.people,requestText:"这是外卖盲盒抽中的真实商品，请给出简短、自然、不过度营销的选择理由"})});
-  const j=await r.json();$("aiText").textContent=j.reason||"今天就吃它，别纠结了。";
- }catch(e){$("aiText").textContent="今天就吃它，别纠结了。"}finally{$("aiBtn").disabled=false}
+"use strict";
+const APP={location:null,current:null,busy:false,filters:{platform:"all",budget:"all",category:"all",people:"all"}};
+const $=id=>document.getElementById(id);
+const CONFIG={
+ platform:[["all","全部"],["meituan","美团"],["taobao","淘宝闪购"]],
+ budget:[["all","不限"],["20","¥20以内"],["40","¥40以内"],["60","¥60以内"],["100","¥100以内"]],
+ category:[["all","随便"],["正餐","正餐"],["小吃","小吃"],["烧烤","烧烤"],["火锅","火锅"],["奶茶","奶茶"],["甜品","甜品"]],
+ people:[["all","不限"],["single","单人餐"],["double","双人餐"],["2-3","2–3人餐"],["6-8","6–8人餐"]]
 };
-renderHistory();
-$("locateBtn").onclick=getLocation;
-
-window.addEventListener("error",()=>{$("status").textContent="页面功能已加载，请重新操作"});
+function setStatus(t){$("status").textContent=t}
+function showMessage(t){const el=$("message");el.textContent=t;el.classList.add("show")}
+function hideMessage(){$("message").classList.remove("show")}
+function renderFilters(){
+ Object.entries(CONFIG).forEach(([key,items])=>{
+  const box=$(key);box.innerHTML="";
+  items.forEach(([v,label])=>{
+   const b=document.createElement("button");b.type="button";b.className="chip"+(APP.filters[key]===v?" active":"");b.textContent=label;
+   b.onclick=()=>{APP.filters[key]=v;[...box.children].forEach(x=>x.classList.remove("active"));b.classList.add("active")};
+   box.appendChild(b);
+  });
+ });
+}
+function loadHistory(){
+ try{return JSON.parse(localStorage.getItem("food_box_history")||"[]")}catch(_){return []}
+}
+function saveHistory(x){
+ try{const old=loadHistory().filter(v=>v.id!==x.id);localStorage.setItem("food_box_history",JSON.stringify([x,...old].slice(0,8)))}catch(_){}
+ renderHistory();
+}
+function renderHistory(){
+ const box=$("history"),items=loadHistory();box.innerHTML="";
+ if(!items.length){box.innerHTML='<div class="empty">还没有抽取记录</div>';return}
+ items.forEach(x=>{const d=document.createElement("div");d.className="historyItem";d.textContent="🍱 "+x.name+" · "+(x.distance<1000?x.distance+"m":(x.distance/1000).toFixed(1)+"km");box.appendChild(d)});
+}
+function distance(a,b,c,d){
+ const R=6371000,p=Math.PI/180,la1=a*p,la2=c*p,dl=(c-a)*p,dg=(d-b)*p;
+ const h=Math.sin(dl/2)**2+Math.cos(la1)*Math.cos(la2)*Math.sin(dg/2)**2;
+ return R*2*Math.atan2(Math.sqrt(h),Math.sqrt(1-h));
+}
+async function getLocation(){
+ if(APP.busy)return;
+ if(!navigator.geolocation){showMessage("当前浏览器不支持手机定位。");return}
+ APP.busy=true;$("locateBtn").disabled=true;$("locateBtn").textContent="📍 定位中…";setStatus("正在定位");hideMessage();
+ navigator.geolocation.getCurrentPosition(async pos=>{
+  try{
+   const lat=Number(pos.coords.latitude),lng=Number(pos.coords.longitude),acc=Math.round(Number(pos.coords.accuracy)||0);
+   APP.location={lat,lng,accuracy:acc};
+   $("locationText").innerHTML="GPS 已获取<br><small>坐标 "+lat.toFixed(6)+"，"+lng.toFixed(6)+" · 精度约 "+acc+" 米</small>";
+   setStatus("GPS已连接");
+   // 地址解析单独执行，失败不会影响定位和抽取
+   try{
+    const url="https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat="+encodeURIComponent(lat)+"&lon="+encodeURIComponent(lng)+"&zoom=18&addressdetails=1&accept-language=zh-CN";
+    const r=await fetch(url,{cache:"no-store"});
+    if(r.ok){const d=await r.json(),a=d.address||{},parts=[a.state||a.province,a.city||a.town||a.municipality||a.county,a.city_district||a.district||a.suburb,a.road,a.house_number].filter(Boolean);if(parts.length)$("locationText").innerHTML=parts.join(" · ")+"<br><small>📍 实时GPS · 精度约 "+acc+" 米</small>"}
+   }catch(_){}
+  }finally{APP.busy=false;$("locateBtn").disabled=false;$("locateBtn").textContent="📍 重新获取当前位置"}
+ },err=>{
+  APP.busy=false;$("locateBtn").disabled=false;$("locateBtn").textContent="📍 重新获取当前位置";
+  const msg=err&&err.code===1?"请允许浏览器使用位置权限":err&&err.code===2?"暂时无法获取当前位置":err&&err.code===3?"定位超时，请重试":"当前位置获取失败";
+  $("locationText").textContent=msg;setStatus("等待定位");showMessage(msg);
+ },{enableHighAccuracy:false,timeout:6000,maximumAge:30000});
+}
+function buildQuery(){
+ const {lat,lng}=APP.location||{};
+ if(!lat||!lng)throw new Error("请先获取当前位置，再抽取附近真实商家。");
+ const c=APP.filters.category;
+ const cf=c==="火锅"?'["cuisine"~"hotpot",i]':c==="烧烤"?'["cuisine"~"barbecue|bbq|grill",i]':c==="奶茶"?'["cuisine"~"bubble_tea|tea",i]':c==="甜品"?'["cuisine"~"dessert|ice_cream|cake",i]':c==="小吃"?'["cuisine"~"snack|fast_food",i]':"";
+ return '[out:json][timeout:12];(nwr(around:5000,'+lat+','+lng+')[amenity=restaurant]'+cf+';nwr(around:5000,'+lat+','+lng+')[amenity=fast_food]'+cf+';);out center tags;';
+}
+async function fetchNearby(){
+ const q=buildQuery(),urls=["https://overpass-api.de/api/interpreter","https://overpass.kumi.systems/api/interpreter"];
+ let last="";
+ for(const base of urls){
+  const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),9000);
+  try{
+   const r=await fetch(base+"?data="+encodeURIComponent(q),{signal:ctl.signal,headers:{Accept:"application/json"}});
+   if(!r.ok){last="数据源 HTTP "+r.status;continue}
+   const data=await r.json();
+   const list=(data.elements||[]).map(x=>{
+    const t=x.tags||{},p=x.type==="node"?{lat:x.lat,lon:x.lon}:{lat:x.center?.lat,lon:x.center?.lon};
+    if(!t.name||p.lat==null||p.lon==null)return null;
+    const d=Math.round(distance(APP.location.lat,APP.location.lng,p.lat,p.lon));
+    const cuisine=String(t.cuisine||"");
+    return {id:x.type+"-"+x.id,name:String(t.name),lat:p.lat,lon:p.lon,distance:d,address:[t["addr:street"],t["addr:housenumber"]].filter(Boolean).join(" "),category:APP.filters.category==="all"?(cuisine||"餐饮"):APP.filters.category};
+   }).filter(Boolean).sort((a,b)=>a.distance-b.distance);
+   const seen=new Set(),out=[];
+   for(const x of list){const k=x.name.toLowerCase();if(seen.has(k))continue;seen.add(k);out.push(x);if(out.length>=50)break}
+   return out;
+  }catch(e){last=e.name==="AbortError"?"数据源响应超时":"数据源连接失败"}finally{clearTimeout(timer)}
+ }
+ throw new Error(last||"附近真实商家数据暂时不可用");
+}
+function showResult(x){
+ APP.current=x;$("foodName").textContent=x.name;$("addr").textContent=x.address||"地址以地图数据为准";$("distance").textContent=x.distance<1000?x.distance+"m":(x.distance/1000).toFixed(1)+"km";$("price").textContent="到平台查看";$("kind").textContent=x.category||"餐饮";$("goMap").onclick=()=>window.open("https://www.openstreetmap.org/?mlat="+x.lat+"&mlon="+x.lon+"#map=18/"+x.lat+"/"+x.lon,"_blank");$("goPlatform").onclick=()=>{showMessage("当前没有美团/淘宝闪购官方实时商品接口，已避免使用假链接或假价格。");};$("result").classList.add("show");saveHistory(x);$("result").scrollIntoView({behavior:"smooth",block:"start"})}
+async function draw(){
+ if(APP.busy)return;
+ if(!APP.location){showMessage("请先点击「获取当前位置」。");return}
+ APP.busy=true;$("draw").disabled=true;$("draw").textContent="🎲 正在寻找真实商家…";$("result").classList.remove("show");hideMessage();setStatus("查询真实商家");
+ try{
+  const list=await fetchNearby();
+  if(!list.length)throw new Error("当前位置附近没有匹配的真实餐饮商家。可以扩大搜索范围或换一个类别。");
+  showResult(list[Math.floor(Math.random()*list.length)]);setStatus("抽取完成");
+ }catch(e){showMessage(e.message||"真实商家源暂时不可用");setStatus("数据源异常")}
+ finally{APP.busy=false;$("draw").disabled=false;$("draw").textContent="🎲 开始抽外卖"}
+}
+async function aiDecide(){
+ if(!APP.current){showMessage("先抽出一家真实商家，再让 AI 帮你决定。");return}
+ $("aiBtn").disabled=true;$("aiText").textContent="正在生成建议…";
+ try{
+  const text="我抽到了「"+APP.current.name+"」，类别是"+(APP.current.category||"餐饮")+"，距离约"+APP.current.distance+"米。请用一句自然中文告诉我为什么现在可以吃它。";
+  const r=await fetch("https://api.openai.com/v1/responses",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({model:"gpt-5.6-mini",input:text})});
+  if(!r.ok)throw new Error("AI接口未配置");
+  const j=await r.json(),out=j.output?.flatMap(v=>v.content||[]).map(v=>v.text).filter(Boolean).join("")||"今天就吃它，别纠结了。";$("aiText").textContent=out;
+ }catch(_){$("aiText").textContent="AI服务暂时不可用，但不影响真实商家抽取。"}
+ finally{$("aiBtn").disabled=false}
+}
+$("locateBtn").onclick=getLocation;$("draw").onclick=draw;$("again").onclick=draw;$("aiBtn").onclick=aiDecide;
+renderFilters();renderHistory();
+window.addEventListener("error",e=>{console.error("App error:",e.message);setStatus("页面已加载 · 某项服务异常")});
+window.addEventListener("unhandledrejection",e=>{console.error("Unhandled:",e.reason);setStatus("页面已加载 · 某项服务异常")});
 </script>
 </body>
 </html>
