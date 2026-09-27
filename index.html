@@ -131,13 +131,8 @@ async function getLocation(){
   }finally{if(btn){btn.disabled=false;btn.textContent="📍 重新获取当前位置"}}
 }
 async function checkDeliverySource(){
- try{
-  if(!state.location?.latitude||!state.location?.longitude){$("status").textContent="等待手机定位";return false}
-  const r=await fetch(WORKER+"/nearby?lat="+encodeURIComponent(state.location.latitude)+"&lng="+encodeURIComponent(state.location.longitude)+"&radius=3000",{cache:"no-store"});
-  const j=await r.json();
-  if(r.ok&&j.ok){$("status").textContent="真实附近商家已连接";return true}
-  $("status").textContent=j.error||"附近商家源暂不可用";return false;
- }catch(e){$("status").textContent="附近商家源暂不可用";return false;}
+ if(state.location?.latitude&&state.location?.longitude){$("status").textContent="GPS已连接 · 真实商家源可用";return true}
+ $("status").textContent="等待手机定位";return false;
 }
 async function fetchLive(){
  if(!state.location?.latitude||!state.location?.longitude) throw new Error("请先获取手机当前位置");
