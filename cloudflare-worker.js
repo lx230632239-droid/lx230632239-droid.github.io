@@ -27,6 +27,20 @@ function extractText(data) {
   return parts.join("\n");
 }
 
+function extractSources(data) {
+  const out = [];
+  for (const item of data.output || []) {
+    for (const c of item.content || []) {
+      for (const a of c.annotations || []) {
+        const u = a?.url_citation?.url || a?.url;
+        const t = a?.url_citation?.title || a?.title;
+        if (u && !out.some(x => x.url === u)) out.push({ url: String(u), title: String(t || u) });
+      }
+    }
+  }
+  return out.slice(0, 6);
+}
+
 function parseJson(text) {
   const cleaned = String(text || "")
     .replace(/^\s*\`\`\`json\s*/i, "")
@@ -50,6 +64,55 @@ export default {
     }
 
     const url = new URL(request.url);
+
+    if (url.pathname === "/health") {
+      return json({
+        ok: true,
+        service: "吃点啥 AI",
+        openaiKeyConfigured: Boolean(env.OPENAI_API_KEY),
+        time: new Date().toISOString()
+      }, 200, origin);
+    }
+
+    if (url.pathname === "/music-ai") {
+      if (request.method !== "GET") return json({ ok:false, error:"AI音乐搜索只接受 GET 请求" },405,origin);
+      if (!env.OPENAI_API_KEY) return json({ok:false,error:"Cloudflare 中没有找到 OPENAI_API_KEY"},500,origin);
+      const q = String(url.searchParams.get("q") || "").trim().slice(0,160);
+      if (!q) return json({ok:false,error:"请输入音乐氛围、场景、歌手或歌名"},400,origin);
+      try {
+        const prompt = [
+          "你是音乐搜索助手。把用户的自然语言需求转换成适合 iTunes 歌曲搜索的简短关键词。",
+          "保留歌手、歌曲名等明确实体；如果是氛围，生成2到5个中文或英文音乐关键词。",
+          "只返回JSON：{\"query\":\"搜索关键词\",\"reason\":\"一句话说明\"}。",
+          "用户需求："+q
+        ].join("\n");
+        const r = await fetch("https://api.openai.com/v1/responses", {
+          method:"POST",
+          headers:{"Authorization":"Bearer "+env.OPENAI_API_KEY,"Content-Type":"application/json"},
+          body:JSON.stringify({model:"gpt-5.5",tools:[{type:"web_search",search_context_size:"low"}],input:prompt,max_output_tokens:220})
+        });
+        const data=await r.json();
+        if(!r.ok) return json({ok:false,error:data?.error?.message||"AI音乐搜索失败"},r.status,origin);
+        const parsed=parseJson(extractText(data));
+        const searchQuery=String(parsed?.query||q).trim().slice(0,120);
+        const api="https://itunes.apple.com/search?term="+encodeURIComponent(searchQuery)+"&media=music&entity=song&limit=12&country=CN";
+        const mr=await fetch(api,{headers:{"Accept":"application/json"}});
+        const md=await mr.json();
+        if(!mr.ok) return json({ok:false,error:"在线音乐搜索失败"},502,origin);
+        const results=(md.results||[]).map(x=>({
+          id:String(x.trackId||x.collectionId||""),
+          name:String(x.trackName||""),
+          artist:String(x.artistName||""),
+          album:String(x.collectionName||""),
+          artwork:String(x.artworkUrl100||x.artworkUrl60||"").replace("100x100","600x600"),
+          preview:String(x.previewUrl||""),
+          link:String(x.trackViewUrl||x.collectionViewUrl||"")
+        })).filter(x=>x.name&&x.preview);
+        return json({ok:true,query:q,searchQuery,reason:String(parsed?.reason||"根据你的需求搜索相关歌曲。"),results,sources:extractSources(data)},200,origin);
+      } catch(e) {
+        return json({ok:false,error:"AI音乐搜索网络请求失败"},502,origin);
+      }
+    }
 
     if (url.pathname === "/music") {
       if (request.method !== "GET") return json({ ok:false, error:"音乐搜索只接受 GET 请求" },405,origin);
@@ -99,16 +162,16 @@ export default {
       const requestText = String(body.requestText || "").trim();
       const taste = String(body.tasteFilter || "随便").trim(), budget = String(body.budget || "").trim(), people = String(body.people || "").trim();
       if (!candidates.length) return json({ ok:false, error:"没有可供AI选择的菜品" },400,origin);
-      const prompt=["你是“吃点啥”里的AI点餐顾问。根据预算、人数、口味和用户文字要求，从候选菜单中真正帮用户做决定。只能选候选菜名，不得虚构。返回严格JSON：winner、reason、alternatives、orderTip、confidence。",
+      const prompt=["你是“吃点啥”里的AI点餐顾问。必须先使用联网检索核对与菜品、口味或用户要求有关的公开资料，再结合预算、人数、口味和用户文字要求做决定。只能选候选菜名，不得虚构。返回严格JSON：winner、reason、alternatives、orderTip、confidence。reason要简要说明联网资料中真正有帮助的信息。",
       "预算："+budget+"；人数："+people+"；口味："+taste+"；用户要求："+(requestText||"无"),
       "候选："+JSON.stringify(candidates.map(x=>({name:x.n,category:x.cat,region:x.region||""})))].join("\n");
       try{
-        const r=await fetch("https://api.openai.com/v1/responses",{method:"POST",headers:{"Authorization":"Bearer "+env.OPENAI_API_KEY,"Content-Type":"application/json"},body:JSON.stringify({model:"gpt-5-mini",input:prompt,max_output_tokens:700})});
+        const r=await fetch("https://api.openai.com/v1/responses",{method:"POST",headers:{"Authorization":"Bearer "+env.OPENAI_API_KEY,"Content-Type":"application/json"},body:JSON.stringify({model:"gpt-5.5",tools:[{type:"web_search",search_context_size:"low"}],input:prompt,max_output_tokens:900})});
         const data=await r.json(); if(!r.ok)return json({ok:false,error:data?.error?.message||"OpenAI请求失败"},r.status,origin);
         const parsed=parseJson(extractText(data)); if(!parsed)return json({ok:false,error:"AI返回内容解析失败"},502,origin);
         const names=new Set(candidates.map(x=>x.n)); const winner=names.has(String(parsed.winner||""))?String(parsed.winner):candidates[0].n;
         const alternatives=Array.isArray(parsed.alternatives)?parsed.alternatives.filter(x=>names.has(String(x))).slice(0,2):[];
-        return json({ok:true,winner,reason:String(parsed.reason||"根据你的条件综合选择。"),alternatives,orderTip:String(parsed.orderTip||"按人数适量点餐。"),confidence:Math.max(1,Math.min(5,Number(parsed.confidence)||4))},200,origin);
+        return json({ok:true,winner,reason:String(parsed.reason||"根据你的条件综合选择。"),alternatives,orderTip:String(parsed.orderTip||"按人数适量点餐。"),confidence:Math.max(1,Math.min(5,Number(parsed.confidence)||4)),sources:extractSources(data)},200,origin);
       }catch(e){return json({ok:false,error:"AI接口网络请求失败"},502,origin);}
     }
 
@@ -123,7 +186,7 @@ export default {
 
     const prompt = [
       "你是“吃点啥”美食决定器的中文美食编辑。",
-      "请只根据真实常识，为指定菜品生成简洁、准确、好吃诱人的信息。",
+      "必须先使用联网检索核对指定菜品的真实公开资料，再生成简洁、准确、好吃诱人的信息。优先参考可靠的百科、地方文化机构、餐饮文化资料等公开来源。",
       "不要编造具体餐厅、店铺、历史人物或无法确认的年份。",
       "地点可以写菜品公认的发源地、代表地区或最具代表性的地域；不确定时写“中国各地”。",
       "故事写成2到3句，讲清来源、饮食文化或吃法，不要写虚构故事。",
@@ -143,9 +206,10 @@ export default {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "gpt-5-mini",
+          model: "gpt-5.5",
+          tools: [{ type: "web_search", search_context_size: "low" }],
           input: prompt,
-          max_output_tokens: 500
+          max_output_tokens: 700
         })
       });
 
@@ -164,7 +228,8 @@ export default {
         desc: String(parsed.desc || ""),
         taste: String(parsed.taste || parsed.desc || ""),
         recommend: Math.max(1, Math.min(5, Number(parsed.recommend) || 4.5)),
-        tasteScore: Math.max(1, Math.min(5, Number(parsed.tasteScore) || 4.5))
+        tasteScore: Math.max(1, Math.min(5, Number(parsed.tasteScore) || 4.5)),
+        sources: extractSources(data)
       }, 200, origin);
     } catch (e) {
       return json({ ok: false, error: "AI接口网络请求失败" }, 502, origin);
