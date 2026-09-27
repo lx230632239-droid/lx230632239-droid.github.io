@@ -211,10 +211,10 @@ export default {
           const r=await fetch(api,{headers:{"Accept":"application/json","User-Agent":"EatWhat/1.0"}});
           if(r.ok){
             const d=await r.json(), a=d.address||{};
-            const region=String(a.state||a.province||"").trim(), city=String(a.city||a.town||a.municipality||a.county||"").trim(), district=String(a.city_district||a.district||a.suburb||a.borough||"").trim();
+            const region=String(a.state||a.province||"").trim(), city=String(a.city||a.town||a.municipality||a.county||"").trim(), district=String(a.city_district||a.district||a.suburb||a.borough||"").trim(), street=String(a.road||"").trim(), houseNumber=String(a.house_number||"").trim(), postcode=String(a.postcode||"").trim();
             const codes={"北京":"110000","天津":"120000","河北":"130000","山西":"140000","内蒙古":"150000","辽宁":"210000","吉林":"220000","黑龙江":"230000","上海":"310000","江苏":"320000","浙江":"330000","安徽":"340000","福建":"350000","江西":"360000","山东":"370000","河南":"410000","湖北":"420000","湖南":"430000","广东":"440000","广西":"450000","海南":"460000","重庆":"500000","四川":"510000","贵州":"520000","云南":"530000","西藏":"540000","陕西":"610000","甘肃":"620000","青海":"630000","宁夏":"640000","新疆":"650000"};
             const key=region.replace(/省|市|自治区|壮族自治区|回族自治区|维吾尔自治区|特别行政区/g,"");
-            return json({ok:true,source:"gps",country:String(a.country_code||"").toUpperCase(),city,region,district,latitude:lat,longitude:lng,taobaoCityCode:codes[key]||"",displayName:String(d.display_name||"").trim()},200,origin);
+            return json({ok:true,source:"gps",country:String(a.country_code||"").toUpperCase(),city,region,district,street,houseNumber,postcode,latitude:lat,longitude:lng,taobaoCityCode:codes[key]||"",displayName:String(d.display_name||"").trim()},200,origin);
           }
         }catch(e){}
         return json({ok:false,error:"当前位置解析失败"},502,origin);
