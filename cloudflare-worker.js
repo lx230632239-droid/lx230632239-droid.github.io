@@ -69,6 +69,7 @@ function taobaoSign(params, secret){
 function pickArray(v){
   if(Array.isArray(v)) return v;
   if(v && Array.isArray(v.item_promotion_dto)) return v.item_promotion_dto;
+  if(v && Array.isArray(v.store_promotion_dto)) return v.store_promotion_dto;
   return [];
 }
 function cleanItem(x){
