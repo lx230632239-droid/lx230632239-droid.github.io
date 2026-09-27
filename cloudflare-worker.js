@@ -138,7 +138,6 @@ export default {
       }
     }
 
-    const url = new URL(request.url);
     if (url.pathname !== "/food") {
       return json({ ok: true, service: "吃点啥 AI", message: "AI接口已部署，请使用 POST /food" }, 200, origin);
     }
