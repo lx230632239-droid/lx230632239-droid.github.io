@@ -83,7 +83,7 @@ const APP={location:null,current:null,busy:false,filters:{platform:"all",budget:
 const WORKER="https://restless-field-1986.lx230632239.workers.dev";
 const $=id=>document.getElementById(id);
 const CONFIG={
- platform:[["all","全部"],["meituan","美团"],["taobao","淘宝闪购"]],
+ platform:[["all","随机平台"],["meituan","美团"],["taobao","淘宝闪购"],["eleme","饿了么"],["jd","京东外卖"]],
  budget:[["all","不限"],["20","¥20以内"],["40","¥40以内"],["60","¥60以内"],["100","¥100以内"]],
  category:[["all","随便"],["正餐","正餐"],["小吃","小吃"],["烧烤","烧烤"],["火锅","火锅"],["奶茶","奶茶"],["甜品","甜品"]],
  people:[["all","不限"],["single","单人餐"],["double","双人餐"],["2-3","2–3人餐"],["6-8","6–8人餐"]]
@@ -217,13 +217,16 @@ function showResult(x){
   if(x.url){window.open(x.url,"_blank");return}
   const name=x.name||"附近餐厅";
   try{await navigator.clipboard.writeText(name)}catch(_){}
-  if(APP.filters.platform==="taobao"){
-    window.open("https://tb.ele.me/","_blank");
-    showMessage("已复制「"+name+"」，并打开淘宝闪购/饿了么入口；进入后直接粘贴店名搜索。");
-  }else{
-    window.open("https://waimai.meituan.com/","_blank");
-    showMessage("已复制「"+name+"」，并打开美团外卖入口；进入后直接粘贴店名搜索。");
-  }
+  const p=APP.filters.platform==="all"?["meituan","taobao","eleme","jd"][Math.floor(Math.random()*4)]:APP.filters.platform;
+  const links={
+   meituan:"https://waimai.meituan.com/",
+   taobao:"https://tb.ele.me/",
+   eleme:"https://tb.ele.me/",
+   jd:"https://www.jd.com/"
+  };
+  const labels={meituan:"美团外卖",taobao:"淘宝闪购",eleme:"饿了么",jd:"京东外卖"};
+  window.open(links[p],"_blank");
+  showMessage("已复制「"+name+"」，并打开"+labels[p]+"；直接粘贴店名搜索即可。");
  };
  $("result").classList.add("show");saveHistory({id:x.id,name:x.name,distance:Number(x.distance)||0});$("result").scrollIntoView({behavior:"smooth",block:"start"});
 }
@@ -237,7 +240,9 @@ async function draw(){
    list=await fetchNearby();
   }
   if(!list.length)throw new Error("没有找到符合条件的真实结果。");
-  // 增加轻微随机权重：同样条件下不会总是抽到最近的一家\n  const pool=list.slice(0,Math.min(list.length,30));\n  const x=pool[Math.floor(Math.random()*pool.length)];
+  // 增加轻微随机权重：同样条件下不会总是抽到最近的一家
+  const pool=list.slice(0,Math.min(list.length,30));
+  const x=pool[Math.floor(Math.random()*pool.length)];
   showResult(x);
   setStatus(x.source==="taobao"?"闪购抽取完成":"附近商家抽取完成");
  }catch(e){showMessage(e.message||"抽取失败");setStatus("抽取失败")}
