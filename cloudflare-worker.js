@@ -201,6 +201,35 @@ export default {
     }
 
 
+
+    if (url.pathname === "/location") {
+      if (request.method !== "GET") return json({ok:false,error:"定位接口只接受 GET 请求"},405,origin);
+      const cf=request.cf||{};
+      const country=String(cf.country||"").toUpperCase();
+      const city=String(cf.city||"").trim();
+      const region=String(cf.region||"").trim();
+      const provinceCodes={
+        "北京":"110000","天津":"120000","河北":"130000","山西":"140000","内蒙古":"150000",
+        "辽宁":"210000","吉林":"220000","黑龙江":"230000","上海":"310000","江苏":"320000",
+        "浙江":"330000","安徽":"340000","福建":"350000","江西":"360000","山东":"370000",
+        "河南":"410000","湖北":"420000","湖南":"430000","广东":"440000","广西":"450000",
+        "海南":"460000","重庆":"500000","四川":"510000","贵州":"520000","云南":"530000",
+        "西藏":"540000","陕西":"610000","甘肃":"620000","青海":"630000","宁夏":"640000",
+        "新疆":"650000"
+      };
+      const regionClean=region.replace(/省|市|自治区|壮族自治区|回族自治区|维吾尔自治区|特别行政区/g,"");
+      return json({
+        ok:true,
+        country,
+        city,
+        region,
+        latitude:cf.latitude||null,
+        longitude:cf.longitude||null,
+        timezone:cf.timezone||null,
+        taobaoCityCode:country==="CN" ? (provinceCodes[regionClean]||"") : ""
+      },200,origin);
+    }
+
     if (url.pathname === "/delivery/detail") {
       if (request.method !== "GET") return json({ok:false,error:"外卖详情接口只接受 GET 请求"},405,origin);
       const itemId=String(url.searchParams.get("item_id")||"").trim();
