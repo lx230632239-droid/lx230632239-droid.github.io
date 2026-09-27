@@ -18,7 +18,7 @@ button,input,select{font:inherit}.app{max-width:760px;margin:auto;padding:10px 1
 .pill{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 8px;white-space:nowrap;font-size:10px;color:#705f57}.catbtn{min-height:38px;display:flex;align-items:center;justify-content:center}.pill.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 .filters{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.field label{display:block;font-size:9px;color:var(--muted);font-weight:900;margin:0 0 5px}.field select{width:100%;height:38px;border:1px solid var(--line);border-radius:11px;background:#fff;padding:0 8px;font-size:10px}
 .menu{margin-top:10px;padding:8px;border:1px solid #f0e2d9;border-radius:17px;background:#fffaf7}.menuToggle{width:100%;display:flex;align-items:center;justify-content:space-between;border:0;background:transparent;padding:7px 4px;color:#806d64;font-size:11px;font-weight:950}.menuToggle em{font-style:normal;font-size:9px;color:#b06b58;background:#fff0e8;border-radius:999px;padding:5px 8px;margin-left:5px}.menuChevron{font-size:18px;color:#b06b58;line-height:1;transition:.2s}.menu.collapsed .menuChevron{transform:rotate(180deg)}.menuBody{padding-top:5px}.menu.collapsed .menuBody{display:none}.menu.collapsed{padding-bottom:8px}.label{font-size:10px;font-weight:950;color:#806d64;margin-bottom:7px}.count{font-size:9px;color:var(--muted);margin-top:7px}
-.details{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px;max-height:390px;overflow:auto;padding-right:2px}.item{border:1px solid #eee1d8;border-radius:15px;padding:6px;background:#fff}.itemTop{display:flex;gap:7px;align-items:center}.itemPhoto{width:64px;height:64px;flex:0 0 64px;border-radius:11px;overflow:hidden;background:#fff3eb}.itemPhoto img{width:100%;height:100%;object-fit:cover;display:block}.itemName{font-size:11px;font-weight:900;line-height:1.35}.item small{display:block;color:var(--muted);font-size:8px;margin-top:3px}.itemActions{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.tiny{border:0;background:#f8eee8;border-radius:8px;padding:5px 7px;font-size:8px;color:#76564b}.tiny.danger{color:#a34d47}
+.foodItem{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid rgba(120,100,80,.12);border-radius:14px;background:#fff;margin-top:8px}.foodItemPic{width:58px;height:58px;flex:none}.foodItemPic .itemPhoto{width:58px;height:58px;border-radius:12px;overflow:hidden}.foodItemPic img{width:100%;height:100%;object-fit:cover}.foodItemMain{min-width:0;flex:1}.foodItemMain b{display:block;font-size:14px}.foodItemMain small{display:block;margin-top:5px;color:#8b8178;font-size:11px}.foodItemBtns{display:flex;gap:5px;align-items:center;flex-wrap:wrap;justify-content:flex-end}.foodItemBtns button,.foodItemBtns label{border:1px solid #eadfd5;background:#fff8f2;border-radius:9px;padding:6px 8px;font-size:11px;color:#66564a}.foodItemBtns input{display:none}.foodItemBtns .danger{color:#b04b4b;background:#fff3f3}.details{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px;max-height:390px;overflow:auto;padding-right:2px}.item{border:1px solid #eee1d8;border-radius:15px;padding:6px;background:#fff}.itemTop{display:flex;gap:7px;align-items:center}.itemPhoto{width:64px;height:64px;flex:0 0 64px;border-radius:11px;overflow:hidden;background:#fff3eb}.itemPhoto img{width:100%;height:100%;object-fit:cover;display:block}.itemName{font-size:11px;font-weight:900;line-height:1.35}.item small{display:block;color:var(--muted);font-size:8px;margin-top:3px}.itemActions{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.tiny{border:0;background:#f8eee8;border-radius:8px;padding:5px 7px;font-size:8px;color:#76564b}.tiny.danger{color:#a34d47}
 .managerToggle{width:100%;margin-top:10px;border:1px dashed #e9cfc2;background:#fff7f2;color:#a95745;border-radius:13px;padding:10px;font-size:10px;font-weight:950;text-align:left}
 .managerBox{display:none!important;margin-top:9px;padding:10px;border:1px solid var(--line);border-radius:16px;background:#fff}.managerBox.show{display:block!important;animation:slide .18s ease}
 .managerGrid{display:grid;grid-template-columns:1fr 110px;gap:6px}.managerGrid input,.managerGrid select{width:100%;height:36px;border:1px solid var(--line);border-radius:10px;padding:0 8px;font-size:10px;background:#fff}.managerGrid .wide{grid-column:1/-1}.managerGrid button{height:36px;border:0;border-radius:10px;background:var(--soft);color:#a95745;font-weight:950;font-size:10px}
@@ -140,11 +140,14 @@ const $=id=>document.getElementById(id);
 const safe=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k)||"null");return v==null?d:v}catch(e){return d}};
 const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-const baseFoods=FOOD_DATA.map((x,i)=>({id:"s"+i,n:x[0],cat:x[1],e:x[2],region:x[3]}));
+const priceRanges={主食:"¥12–25",正餐:"¥25–60",小吃:"¥8–20",甜品:"¥15–35",奶茶:"¥12–22",饮品:"¥8–18",烧烤:"¥8–25/串",火锅:"¥60–120/人",海鲜:"¥30–80",早餐:"¥6–18",夜宵:"¥15–40",家常菜:"¥18–45"};
+const namedPrices={"螺蛳粉":"¥12–18","兰州牛肉面":"¥12–20","重庆小面":"¥10–18","热干面":"¥8–15","炸酱面":"¥12–20","担担面":"¥10–18","蛋炒饭":"¥12–22","扬州炒饭":"¥15–25","卤肉饭":"¥15–28","煲仔饭":"¥18–35","北京烤鸭":"¥80–160/份","潮汕牛肉火锅":"¥80–150/人","重庆火锅":"¥60–120/人","小龙虾":"¥45–80/斤","清蒸大闸蟹":"¥60–150/只","奶茶":"¥12–22"};
+const baseFoods=FOOD_DATA.map((x,i)=>({id:"s"+i,n:x[0],cat:x[1],e:x[2],region:x[3],price:namedPrices[x[0]]||priceRanges[x[1]]||"¥15–40"}));
 
 // v6：彻底清掉旧版系统菜单的历史污染，固定为120道基础菜；用户自定义菜单和收藏/记录继续保留。
 let systemFoods=safe("food_system_v6",null);
 if(!Array.isArray(systemFoods)||systemFoods.length!==baseFoods.length){systemFoods=baseFoods.map(x=>({...x}));save("food_system_v6",systemFoods)}
+else {systemFoods.forEach(f=>{if(!f.price)f.price=namedPrices[f.n]||priceRanges[f.cat]||"¥15–40"});save("food_system_v6",systemFoods)}
 let systemCats=safe("food_system_cats_v6",null);
 if(!Array.isArray(systemCats)||systemCats.length!==SYSTEM_CATS.length){systemCats=SYSTEM_CATS.slice();save("food_system_cats_v6",systemCats)}
 let customFoods=safe("food_custom_v4",[]).filter(f=>f&&f.n&&f.cat);
@@ -247,8 +250,8 @@ function render(){
   $("customCount").textContent=customFoods.length;
   $("cats").innerHTML="<button class='pill catbtn "+(category==="全部"?"on":"")+"' data-cat='全部'>全部</button>"+activeCats().map(c=>"<button class='pill catbtn "+(category===c?"on":"")+"' data-cat='"+esc(c)+"'>"+(catIcon[c]||"🍽️")+" "+esc(c)+"</button>").join("");
   $("count").textContent="当前分类 "+list().length+" 道";
-  // 菜单区域只展示分类；菜品图片只在抽取动画和最终结果中出现，避免页面铺满。
-  $("details").innerHTML="";
+  const foods=list();
+  $("details").innerHTML=foods.length?foods.map(f=>"<div class='foodItem'><div class='foodItemPic'>"+photoBox(f,"item")+"</div><div class='foodItemMain'><b>"+esc(f.n)+"</b><small>"+esc(f.region||"中国")+" · 参考价 "+esc(f.price||"¥15–40")+"</small></div><div class='foodItemBtns'><button type='button' onclick='editFood(\\""+esc(f.id)+"\\")'>编辑</button><label>换图<input type='file' accept='image/*' onchange='uploadFoodImage(\\""+esc(f.id)+"\\",this)'></label><button class='danger' type='button' onclick='deleteFood(\\""+esc(f.id)+"\\")'>删除</button></div></div>").join(""):"<div class='empty'>当前分类暂无菜品</div>";
   document.querySelectorAll(".catbtn").forEach(b=>b.onclick=()=>{category=b.dataset.cat;render()});
   $("foodCat").innerHTML=activeCats().map(c=>"<option>"+esc(c)+"</option>").join("");
   $("catManager").innerHTML=activeCats().map((c,i)=>"<div class='catRow'><span>"+(catIcon[c]||"🍽️")+" "+esc(c)+" · "+activeFoods().filter(f=>f.cat===c).length+"道</span><button onclick='renameCat("+i+")' type='button'>改名</button><button onclick='deleteCat("+i+")' type='button'>删除</button></div>").join("");
@@ -260,11 +263,17 @@ function saveActive(){save(source==="system"?"food_system_v6":"food_custom_v4",a
 function saveCats(){save(source==="system"?"food_system_cats_v6":"food_custom_cats_v4",activeCats())}
 window.renameCat=function(i){const cats=activeCats(),old=cats[i],n=prompt("把“"+old+"”改成：",old);if(!n||!n.trim()||n.trim()===old)return;const nn=n.trim();if(cats.includes(nn))return alert("这个分类已经存在");cats[i]=nn;activeFoods().forEach(f=>{if(f.cat===old)f.cat=nn});saveCats();saveActive();category=nn;render()};
 window.deleteCat=function(i){const cats=activeCats();if(cats.length<=1)return alert("至少保留一个分类");const old=cats[i],target=cats[i===0?1:0];if(!confirm("删除“"+old+"”？该分类菜品会移到“"+target+"”。"))return;activeFoods().forEach(f=>{if(f.cat===old)f.cat=target});cats.splice(i,1);saveCats();saveActive();category="全部";render()};
-function editFood(id){const f=activeFoods().find(x=>x.id===id);if(!f)return;const n=prompt("修改菜品名称：",f.n);if(!n||!n.trim())return;f.n=n.trim();saveActive();render()}
+function editFood(id){
+  const f=activeFoods().find(x=>x.id===id);if(!f)return;
+  const n=prompt("修改菜品名称：",f.n);if(n===null)return;
+  if(!n.trim())return alert("菜品名称不能为空");
+  const p=prompt("修改参考价格：",f.price||priceRanges[f.cat]||"¥15–40");if(p===null)return;
+  f.n=n.trim();f.price=p.trim()||"¥15–40";saveActive();render();
+}
 function deleteFood(id){const arr=activeFoods(),f=arr.find(x=>x.id===id);if(!f)return;if(confirm("确定删除“"+f.n+"”？")){if(source==="system")systemFoods=systemFoods.filter(x=>x.id!==id);else customFoods=customFoods.filter(x=>x.id!==id);saveActive();render()}}
 function uploadFoodImage(id,input){const file=input.files?.[0];if(!file)return;const f=activeFoods().find(x=>x.id===id);if(!f)return;const rd=new FileReader();rd.onload=()=>{f.img=rd.result;delete imgCache[f.n];saveActive();render()};rd.readAsDataURL(file)}
 function addCategory(){const n=$("newCat").value.trim();if(!n)return;if(activeCats().includes(n))return alert("分类已经存在");activeCats().push(n);$("newCat").value="";saveCats();render()}
-function addFood(){const n=$("foodName").value.trim(),c=$("foodCat").value;if(!n)return alert("请输入菜品名称");const file=$("foodFile").files[0];const f={id:(source==="system"?"s":"c")+Date.now(),n,cat:c,e:"🍽️",region:source==="system"?"自定义系统菜品":"我的菜单"};const done=()=>{if(source==="system")systemFoods.push(f);else customFoods.push(f);saveActive();$("foodName").value="";$("foodFile").value="";render()};if(file){const rd=new FileReader();rd.onload=()=>{f.img=rd.result;done()};rd.readAsDataURL(file)}else done()}
+function addFood(){const n=$("foodName").value.trim(),c=$("foodCat").value;if(!n)return alert("请输入菜品名称");const price=prompt("请输入参考价格：",priceRanges[c]||"¥15–40");if(price===null)return;const file=$("foodFile").files[0];const f={id:(source==="system"?"s":"c")+Date.now(),n,cat:c,e:"🍽️",region:source==="system"?"自定义系统菜品":"我的菜单",price:price.trim()||"¥15–40"};const done=()=>{if(source==="system")systemFoods.push(f);else customFoods.push(f);saveActive();$("foodName").value="";$("foodFile").value="";render()};if(file){const rd=new FileReader();rd.onload=()=>{f.img=rd.result;done()};rd.readAsDataURL(file)}else done()}
 
 function foodStory(f){return "这道菜来自"+(f.region||"中国")+"，承载着当地的饮食习惯与生活烟火气。"}
 function tastyDesc(f){
@@ -330,7 +339,7 @@ function showResult(f){
   $("resultDesc").textContent=tastyDesc(f);
   $("recommend").textContent=s.r+"/5";
   $("taste").textContent=s.t+"/5";
-  $("resultRegion").innerHTML="📍 <b>地点：</b>"+esc(f.region||"我的菜单")+"<br>📖 <b>故事：</b>"+esc(foodStory(f))+"<br>🍴 <b>点评：</b>"+esc(tastyDesc(f));
+  $("resultRegion").innerHTML="💰 <b>参考价格：</b>"+esc(f.price||"¥15–40")+"<br>📍 <b>地点：</b>"+esc(f.region||"我的菜单")+"<br>📖 <b>故事：</b>"+esc(foodStory(f))+"<br>🍴 <b>点评：</b>"+esc(tastyDesc(f));
   $("resultPhoto").innerHTML=photoBox(f,"result");
   $("result").classList.add("show");
   $("result").scrollIntoView({behavior:"smooth",block:"start"});
