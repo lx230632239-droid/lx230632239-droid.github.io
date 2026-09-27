@@ -223,6 +223,24 @@ export default {
       return json({ok:true,source:"ip",country:String(cf.country||"").toUpperCase(),city:String(cf.city||"").trim(),region:String(cf.region||"").trim(),district:"",latitude:cf.latitude||null,longitude:cf.longitude||null,timezone:cf.timezone||null,taobaoCityCode:""},200,origin);
     }
 
+    if (url.pathname === "/nearby") {
+      if (request.method !== "GET") return json({ok:false,error:"附近商家接口只接受 GET 请求"},405,origin);
+      const lat=Number(url.searchParams.get("lat")), lng=Number(url.searchParams.get("lng"));
+      const radius=Math.min(Math.max(Number(url.searchParams.get("radius")||3000),500),8000);
+      const category=String(url.searchParams.get("category")||"").trim();
+      if(!Number.isFinite(lat)||!Number.isFinite(lng)) return json({ok:false,error:"请先获取手机当前位置"},400,origin);
+      const categoryFilter=category==="火锅"?'["cuisine"~"hotpot",i]':category==="烧烤"?'["cuisine"~"barbecue|bbq|grill",i]':category==="奶茶"?'["cuisine"~"bubble_tea|tea",i]':category==="甜品"?'["cuisine"~"dessert|ice_cream|cake",i]':category==="小吃"?'["cuisine"~"snack|fast_food",i]':'';
+      const q='[out:json][timeout:12];(nwr(around:'+radius+','+lat+','+lng+')[amenity=restaurant]'+categoryFilter+';nwr(around:'+radius+','+lat+','+lng+')[amenity=fast_food]'+categoryFilter+';);out center tags;';
+      const endpoints=["https://overpass-api.de/api/interpreter","https://overpass.kumi.systems/api/interpreter"];
+      let data=null,lastError="";
+      for(const endpoint of endpoints){try{const r=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"text/plain;charset=UTF-8","User-Agent":"EatWhat/1.0 (real nearby food selector)"},body:q});if(r.ok){data=await r.json();break;}lastError="附近商家源响应 "+r.status;}catch(e){lastError="附近商家源网络请求失败";}}
+      if(!data)return json({ok:false,error:lastError||"附近商家源暂时不可用"},502,origin);
+      const hav=(a,b,c,d)=>{const R=6371000,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,z=Math.sin(x/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2;return R*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z));};
+      const results=(data.elements||[]).map(x=>{const t=x.tags||{},p=x.type==="node"?{lat:x.lat,lon:x.lon}:{lat:x.center?.lat,lon:x.center?.lon};if(!t.name||p.lat==null||p.lon==null)return null;const d=Math.round(hav(lat,lng,p.lat,p.lon)),cuisine=String(t.cuisine||"");const inferred=category==="all"?(cuisine||(t.amenity==="fast_food"?"小吃":"正餐")):category;const map="https://www.openstreetmap.org/?mlat="+encodeURIComponent(p.lat)+"&mlon="+encodeURIComponent(p.lon)+"#map=19/"+encodeURIComponent(p.lat)+"/"+encodeURIComponent(p.lon);return {source:"nearby",id:String(x.type)+"-"+String(x.id),name:String(t.name),price:0,originalPrice:0,discount:"",image:String(t.image||""),sales:"",stock:"",shops:1,category:inferred,distance:d,deliveryTime:0,deliveryPrice:"",url:map,lat:p.lat,lng:p.lon,address:String(t["addr:street"]||"")+" "+String(t["addr:housenumber"]||""),phone:String(t.phone||"")};}).filter(Boolean).sort((a,b)=>a.distance-b.distance);
+      const unique=[],seen=new Set();for(const x of results){const k=x.name.toLowerCase();if(!seen.has(k)){seen.add(k);unique.push(x);}if(unique.length>=40)break;}
+      return json({ok:true,live:true,source:"nearby",radius,results:unique,attribution:"© OpenStreetMap contributors"},200,origin);
+    }
+
     if (url.pathname === "/delivery/detail") {
       if (request.method !== "GET") return json({ok:false,error:"外卖详情接口只接受 GET 请求"},405,origin);
       const itemId=String(url.searchParams.get("item_id")||"").trim();
