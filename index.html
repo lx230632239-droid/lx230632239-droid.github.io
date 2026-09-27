@@ -104,7 +104,8 @@
 
 <script>
 const WORKER="https://restless-field-1986.lx230632239.workers.dev";
-function safeHistory(){try{const v=JSON.parse(localStorage.getItem("delivery_history_v1")||"[]");return Array.isArray(v)?v:[]}catch(e){try{localStorage.removeItem("delivery_history_v1")}catch(_){}return []}}\nconst state={platform:"all",budget:"all",category:"all",people:"all",current:null,location:null,history:safeHistory()};
+function safeHistory(){try{const v=JSON.parse(localStorage.getItem("delivery_history_v1")||"[]");return Array.isArray(v)?v:[]}catch(e){try{localStorage.removeItem("delivery_history_v1")}catch(_){}return []}}
+const state={platform:"all",budget:"all",category:"all",people:"all",current:null,location:null,history:safeHistory()};
 function $(id){return document.getElementById(id)}
 function bindChips(id,key){document.querySelectorAll("#"+id+" .chip").forEach(b=>b.onclick=()=>{document.querySelectorAll("#"+id+" .chip").forEach(x=>x.classList.remove("active"));b.classList.add("active");state[key]=b.dataset.v})}
 bindChips("platform","platform");bindChips("budget","budget");bindChips("category","category");bindChips("people","people");
@@ -173,7 +174,8 @@ $("aiBtn").onclick=async()=>{
  }catch(e){$("aiText").textContent="今天就吃它，别纠结了。"}finally{$("aiBtn").disabled=false}
 };
 renderHistory();
-loadLocation().then(()=>checkDeliverySource()).catch(()=>{});\nwindow.addEventListener("error",()=>{$("status").textContent="页面功能已加载，请重新操作"});
+loadLocation().then(()=>checkDeliverySource()).catch(()=>{});
+window.addEventListener("error",()=>{$("status").textContent="页面功能已加载，请重新操作"});
 </script>
 </body>
 </html>
