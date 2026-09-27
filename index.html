@@ -13,7 +13,7 @@
 <div class="app">
   <div class="top">
     <div><div class="brand">🍱 吃点啥？</div><div class="sub">真实外卖 · 随机盲盒</div></div>
-    <div class="status" id="status">外卖源待接入</div>
+    <div class="status" id="status">正在检测外卖源…</div>
   </div>
 
   <section class="hero">
@@ -108,7 +108,7 @@ const state={platform:"all",budget:"all",category:"all",people:"all",current:nul
 function $(id){return document.getElementById(id)}
 function bindChips(id,key){document.querySelectorAll("#"+id+" .chip").forEach(b=>b.onclick=()=>{document.querySelectorAll("#"+id+" .chip").forEach(x=>x.classList.remove("active"));b.classList.add("active");state[key]=b.dataset.v})}
 bindChips("platform","platform");bindChips("budget","budget");bindChips("category","category");bindChips("people","people");
-async function fetchLive(){
+async function checkDeliverySource(){\n try{\n  const r=await fetch(WORKER+"/delivery?platform=taobao",{cache:"no-store"});\n  const j=await r.json();\n  if(r.ok&&j.ok&&j.live){$("status").textContent="淘宝闪购已连接";return true;}\n  $("status").textContent=j.error||"外卖源暂不可用";return false;\n }catch(e){$("status").textContent="外卖源暂不可用";return false;}\n}\nasync function fetchLive(){
  const p=state.platform==="meituan"?"meituan":"taobao";
  const qs=new URLSearchParams({platform:p,budget:state.budget==="all"?"":state.budget,category:state.category==="all"?"":state.category,people:state.people==="all"?"":state.people});
  const r=await fetch(WORKER+"/delivery?"+qs.toString(),{cache:"no-store"});
@@ -151,7 +151,7 @@ $("aiBtn").onclick=async()=>{
   const j=await r.json();$("aiText").textContent=j.reason||"今天就吃它，别纠结了。";
  }catch(e){$("aiText").textContent="今天就吃它，别纠结了。"}finally{$("aiBtn").disabled=false}
 };
-renderHistory();
+renderHistory();\ncheckDeliverySource();
 </script>
 </body>
 </html>
