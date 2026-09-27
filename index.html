@@ -43,7 +43,10 @@ body{margin:0;background:#f5f1ed;color:#241c18;font-family:-apple-system,BlinkMa
 .history{display:grid;gap:8px}.historyItem{background:#faf7f4;border-radius:12px;padding:10px 11px;font-size:12px;display:flex;align-items:center;gap:8px}.historyMain{min-width:0;flex:1}.deleteBtn,.miniBtn{border:0;background:#eee9e4;color:#8b7770;border-radius:9px;padding:7px 9px;font-size:11px}.miniBtn{background:#f3ebe6}
 .empty{text-align:center;color:#a09189;padding:15px}.notice{font-size:11px;color:#9a8d86;line-height:1.7}.hidden{display:none!important}
 .reveal{animation:reveal .7s ease both}@keyframes reveal{from{transform:scale(.94);opacity:.2}to{transform:scale(1);opacity:1}}
-.shake{animation:shake .45s ease-in-out infinite alternate}@keyframes shake{from{transform:rotate(-5deg) translateY(2px)}to{transform:rotate(5deg) translateY(-2px)}}
+.shake{animation:shake .12s ease-in-out infinite alternate}@keyframes shake{from{transform:rotate(-7deg) scale(.98)}to{transform:rotate(7deg) scale(1.02)}} 
+.roulette{font-size:26px;font-weight:950;min-height:34px;display:flex;align-items:center;justify-content:center;margin-top:6px;letter-spacing:.5px}
+.motionHint{font-size:11px;color:#cdbfba;margin-top:8px}
+.spinFlash{animation:spinFlash .12s linear infinite alternate}@keyframes spinFlash{from{opacity:.55;transform:scale(.98)}to{opacity:1;transform:scale(1.02)}}
 @media(max-width:480px){.status{max-width:120px;overflow:hidden;text-overflow:ellipsis}.hero h1{font-size:27px}}
 </style>
 </head>
@@ -91,7 +94,8 @@ body{margin:0;background:#f5f1ed;color:#241c18;font-family:-apple-system,BlinkMa
   <div class="boxReveal hidden" id="boxReveal">
     <div class="boxEmoji shake">🎁</div>
     <div class="boxTitle">正在拆盲盒…</div>
-    <div class="boxSub">正在从附近真实商家里随机抽取</div>
+    <div class="roulette" id="rouletteName">准备抽卡</div>
+    <div class="boxSub">候选已缓存 · 正在连续轮动</div>
   </div>
 
   <div class="winner reveal" id="winner">
@@ -151,7 +155,12 @@ const APP = {
     budget: "all",
     category: "all",
     people: "all"
-  }
+  },
+  candidates: [],
+  cacheKey: "",
+  cacheAt: 0,
+  motionReady: false,
+  motionLast: 0
 };
 
 const STORAGE_KEY = "food_box_history_v2";
@@ -602,30 +611,31 @@ async function queryOverpass(lat, lng) {
   return [];
 }
 
-async function fetchNearby() {
+async function fetchNearby(force=false) {
   if (!APP.location) throw new Error("请先获取当前位置。");
 
-  const { lat, lng } = APP.location;
-  const terms = searchTerms(APP.filters.category);
+  const {lat,lng}=APP.location;
+  const key=[
+    lat.toFixed(3),lng.toFixed(3),
+    APP.filters.category
+  ].join("|");
 
-  setStatus("正在检索真实商家");
-
-  /* 两种真实地图源并发，避免一个源卡住整个页面 */
-  const nomPromise = Promise.all(
-    terms.map(term => queryNominatim(lat, lng, term).catch(() => []))
-  ).then(groups => uniquePois(groups.flat()));
-
-  const overpassPromise = queryOverpass(lat, lng).catch(() => []);
-
-  const results = await Promise.all([nomPromise, overpassPromise]);
-  const merged = uniquePois(results.flat());
-
-  if (!merged.length) {
-    throw new Error("附近暂时没有检索到真实商家，请重新定位或换一个类别。");
+  // 同一位置/类别 3 分钟内直接复用候选池，换一家不再联网
+  if(!force && APP.candidates.length && APP.cacheKey===key && Date.now()-APP.cacheAt<180000){
+    return APP.candidates;
   }
 
-  /* 预算/人数没有可靠商品级价格数据时，不伪造过滤 */
-  return merged.slice(0, 100);
+  setStatus("快速检索附近真实商家");
+  const list=await queryOverpass(lat,lng);
+
+  if(!list.length){
+    throw new Error("附近暂时没有检索到真实商家。可以重新定位后再试。");
+  }
+
+  APP.candidates=list.slice(0,80);
+  APP.cacheKey=key;
+  APP.cacheAt=Date.now();
+  return APP.candidates;
 }
 
 function estimatePrice(category, people, budget){
@@ -709,42 +719,61 @@ function showResult(item) {
 /* =========================================================
    08. 核心抽取
    ========================================================= */
-async function draw() {
-  if (APP.busy) return;
+async function draw(forceRefresh=false) {
+  if(APP.busy)return;
 
-  if (!APP.location) {
+  if(!APP.location){
     showMessage("请先点击「获取当前位置」。");
     return;
   }
 
-  APP.busy = true;
-  setBusy("draw", true, "🎲 正在检索…", "🎲 开始抽外卖");
-  $("result").classList.remove("show");
+  APP.busy=true;
+  setBusy("draw",true,"🎲 正在抽卡…","🎁 摇一摇，开盲盒");
+  hideMessage();
+  $("result").classList.add("show");
   $("winner").classList.add("hidden");
   $("boxReveal").classList.remove("hidden");
-  $("heroIcon").textContent = "🎲";
-  hideMessage();
+  $("heroIcon").textContent="🎲";
 
-  try {
-    const list = await fetchNearby();
-    await new Promise(resolve => setTimeout(resolve, 1200));
+  try{
+    const list=await fetchNearby(forceRefresh);
+    APP._lastCount=list.length;
+
+    // 真正的“抽卡轮动”：候选店名快速切换，最后停在中奖店
+    const fresh=list.filter(x=>!loadHistory().slice(0,5).some(h=>String(h.id)===String(x.id)));
+    const pool=(fresh.length?fresh:list).slice(0,60);
+    if(!pool.length)throw new Error("没有可抽取的真实商家。");
+
+    const finalItem=pool[Math.floor(Math.random()*pool.length)];
+    const roulette=$("rouletteName");
+    const revealMs=1800;
+    const started=Date.now();
+
+    while(Date.now()-started<revealMs){
+      const temp=pool[Math.floor(Math.random()*pool.length)];
+      roulette.textContent=temp.name;
+      roulette.classList.add("spinFlash");
+      await new Promise(r=>setTimeout(r,95));
+    }
+
+    roulette.textContent="🎉 "+finalItem.name;
+    navigator.vibrate?.([80,45,120]);
+
+    await new Promise(r=>setTimeout(r,280));
     $("boxReveal").classList.add("hidden");
     $("winner").classList.remove("hidden");
-    const item = chooseRandom(list);
-
-    if (!item) throw new Error("没有找到符合条件的真实商家。");
-
-    APP._lastCount = list.length;
-    $("heroIcon").textContent = "🎊";
-    showResult(item);
-    setStatus("抽取完成 · 找到 " + list.length + " 家真实商家");
-  } catch (error) {
-    console.error("draw failed:", error);
+    $("heroIcon").textContent="🎊";
+    showResult(finalItem);
+    setStatus("抽取完成 · "+list.length+" 家候选");
+  }catch(error){
+    console.error("draw failed:",error);
+    $("boxReveal").classList.add("hidden");
+    $("result").classList.remove("show");
     setStatus("检索失败");
-    showMessage(error && error.message ? error.message : "抽取失败，请重新定位后再试。");
-  } finally {
-    APP.busy = false;
-    setBusy("draw", false, "🎲 正在检索…", "🎲 开始抽外卖");
+    showMessage(error?.message||"抽取失败，请重新定位后再试。");
+  }finally{
+    APP.busy=false;
+    setBusy("draw",false,"🎲 正在抽卡…","🎁 摇一摇，开盲盒");
   }
 }
 
@@ -790,11 +819,56 @@ async function aiDecide() {
 }
 
 /* =========================================================
+   10. 手机真实摇一摇
+   ========================================================= */
+async function enableShake(){
+  if(APP.motionReady)return true;
+  if(!window.DeviceMotionEvent){
+    showMessage("当前设备不支持摇一摇，请点击开盲盒。");
+    return false;
+  }
+
+  try{
+    if(typeof DeviceMotionEvent.requestPermission==="function"){
+      const permission=await DeviceMotionEvent.requestPermission();
+      if(permission!=="granted"){
+        showMessage("没有获得运动传感器权限，点击按钮仍可正常抽卡。");
+        return false;
+      }
+    }
+
+    window.addEventListener("devicemotion",event=>{
+      if(APP.busy || !APP.location)return;
+      const a=event.accelerationIncludingGravity||event.acceleration;
+      if(!a)return;
+      const x=Math.abs(Number(a.x)||0),y=Math.abs(Number(a.y)||0),z=Math.abs(Number(a.z)||0);
+      const strength=Math.max(x,y,z);
+      const now=Date.now();
+
+      if(strength>18 && now-APP.motionLast>1800){
+        APP.motionLast=now;
+        navigator.vibrate?.(60);
+        draw(false);
+      }
+    },{passive:true});
+
+    APP.motionReady=true;
+    return true;
+  }catch(_){
+    return false;
+  }
+}
+
+/* =========================================================
    10. 统一事件入口
    ========================================================= */
 $("locateBtn").addEventListener("click", getLocation);
-$("draw").addEventListener("click", draw);
-$("again").addEventListener("click", draw);
+$("draw").addEventListener("click",async()=>{
+  await enableShake();
+  draw(false);
+});
+$("again").addEventListener("click",()=>draw(false));
+$("draw").addEventListener("dblclick",()=>draw(true));
 $("aiBtn").addEventListener("click", aiDecide);
 
 window.addEventListener("error", event => {
