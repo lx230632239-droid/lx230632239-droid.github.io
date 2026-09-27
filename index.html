@@ -396,14 +396,29 @@ function syncLyrics(){
 function celebrate(){winSound();for(let i=0;i<28;i++){const e=document.createElement("i");e.className="confetti";e.style.left=(10+Math.random()*80)+"vw";e.style.setProperty("--x",(Math.random()*180-90)+"px");e.style.animationDelay=(Math.random()*.3)+"s";document.body.appendChild(e);setTimeout(()=>e.remove(),2100)}for(let i=0;i<14;i++){const e=document.createElement("i");e.className="fire";e.style.setProperty("--x",(Math.random()*280-140)+"px");e.style.setProperty("--y",(Math.random()*240-120)+"px");document.body.appendChild(e);setTimeout(()=>e.remove(),1000)}}
 
 function draw(){
-  const a=list();if(!a.length)return alert("当前分类还没有菜品");
-  const winner=a[Math.floor(Math.random()*a.length)],seq=[];for(let i=0;i<13;i++)seq.push(a[Math.floor(Math.random()*a.length)]);seq[11]=winner;
-  $("draw").classList.add("show");$("result").classList.remove("show");$("drawTitle").textContent="正在抽取……";
-  $("track").innerHTML=seq.map(f=>"<div class='mini'>"+photoBox(f,"mini")+"<b>"+esc(f.n)+"</b></div>").join("");
-  const tr=$("track");tr.style.transition="none";tr.style.transform="translateX(0)";drawSound();
-  requestAnimationFrame(()=>{tr.style.transition="transform 2.5s cubic-bezier(.1,.8,.15,1)";tr.style.transform="translateX(-"+(11*133-66)+"px)"});
-  setTimeout(()=>{$("drawTitle").textContent="✨ 决定好了！";showResult(winner);history.push({...winner});history=history.slice(-30);save("food_hist_v5",history);renderRecords()},2650);
-  hydrate();
+  const a=list();
+  if(!Array.isArray(a)||!a.length){alert("当前分类还没有菜品");return}
+  const winner=a[Math.floor(Math.random()*a.length)];
+  const seq=[];
+  for(let i=0;i<13;i++)seq.push(a[Math.floor(Math.random()*a.length)]);
+  seq[11]=winner;
+  $("draw").classList.add("show");
+  $("result").classList.remove("show");
+  $("drawTitle").textContent="正在抽取……";
+  const tr=$("track");
+  tr.style.transition="none";tr.style.transform="translateX(0)";
+  tr.innerHTML=seq.map(f=>"<div class='mini'>"+photoBox(f,"mini")+"<b>"+esc(f.n)+"</b></div>").join("");
+  try{drawSound()}catch(e){console.warn("drawSound",e)}
+  requestAnimationFrame(()=>{
+    tr.style.transition="transform 2.5s cubic-bezier(.1,.8,.15,1)";
+    tr.style.transform="translateX(-"+(11*133-66)+"px)";
+  });
+  setTimeout(()=>{
+    $("drawTitle").textContent="✨ 决定好了！";
+    try{showResult(winner)}catch(e){console.error(e)}
+    try{history.push({...winner});history=history.slice(-30);save("food_hist_v5",history);renderRecords()}catch(e){console.error(e)}
+  },2650);
+  try{hydrate()}catch(e){console.warn("hydrate",e)}
 }
 
 function renderRecords(){
