@@ -150,25 +150,40 @@ function buildQuery(){
 }
 async function fetchNearby(){
  const lat=APP.location.lat,lng=APP.location.lng,cat=APP.filters.category;
- const q=buildQuery();
- const overpassUrls=[
+ let last="";
+ // 第一优先：直接查公开真实地图搜索，速度比 Overpass 稳定
+ const terms=cat==="all"?["restaurant","cafe","fast food"]:({正餐:"restaurant",小吃:"fast food",烧烤:"barbecue",火锅:"hot pot",奶茶:"bubble tea",甜品:"dessert"}[cat]||"restaurant");
+ for(const term of terms){
+  try{
+   const u="https://nominatim.openstreetmap.org/search?format=jsonv2&limit=50&addressdetails=1&dedupe=1&accept-language=zh-CN&q="+encodeURIComponent(term)+"&viewbox="+encodeURIComponent((lng-0.12)+","+ (lat+0.12)+","+ (lng+0.12)+","+ (lat-0.12))+"&bounded=1";
+   const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),5000);
+   const r=await fetch(u,{signal:ctl.signal,cache:"no-store",headers:{Accept:"application/json"}});
+   clearTimeout(timer);
+   if(!r.ok){last="地图搜索 HTTP "+r.status;continue}
+   const data=await r.json();
+   const list=data.map(x=>{
+    const la=Number(x.lat),lo=Number(x.lon);
+    if(!x.display_name||!Number.isFinite(la)||!Number.isFinite(lo))return null;
+    return {id:"nom-"+x.place_id,name:x.name||x.display_name.split(",")[0],lat:la,lng:lo,distance:Math.round(distance(lat,lng,la,lo)),address:x.display_name,category:cat==="all"?"餐饮":cat,source:"nearby"};
+   }).filter(Boolean).sort((a,b)=>a.distance-b.distance);
+   const seen=new Set(),out=[];
+   for(const x of list){
+    const k=x.name.trim().toLowerCase();
+    if(!k||seen.has(k))continue;
+    seen.add(k);out.push(x);
+   }
+   const nearby=out.filter(x=>x.distance<=15000);
+   if(nearby.length)return nearby;
+   if(out.length)return out;
+  }catch(e){last=e.name==="AbortError"?"地图搜索超时":"地图搜索连接失败"}
+ }
+ // 第二优先：Overpass，补充餐厅 POI
+ const q=buildQuery(),urls=[
   "https://overpass-api.de/api/interpreter?data="+encodeURIComponent(q),
   "https://overpass.kumi.systems/api/interpreter?data="+encodeURIComponent(q)
  ];
- let last="";
- // 1) Worker：以后可作为最快的聚合入口
- try{
+ for(const url of urls){
   const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),7000);
-  const r=await fetch(WORKER+"/nearby?lat="+encodeURIComponent(lat)+"&lng="+encodeURIComponent(lng)+"&radius=5000&category="+encodeURIComponent(cat),{signal:ctl.signal,cache:"no-store"});
-  clearTimeout(timer);
-  if(r.ok){
-   const data=await r.json();
-   if(Array.isArray(data.results)&&data.results.length)return data.results;
-  }
- }catch(e){last="聚合源暂时不可用"}
- // 2) Overpass：真实 OSM 餐饮点，逐个容错
- for(const url of overpassUrls){
-  const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),9000);
   try{
    const r=await fetch(url,{signal:ctl.signal,cache:"no-store",headers:{Accept:"application/json"}});
    if(!r.ok){last="地图源 HTTP "+r.status;continue}
@@ -176,33 +191,10 @@ async function fetchNearby(){
    const list=(data.elements||[]).map(x=>{
     const t=x.tags||{},p=x.type==="node"?{lat:x.lat,lon:x.lon}:{lat:x.center?.lat,lon:x.center?.lon};
     if(!t.name||p.lat==null||p.lon==null)return null;
-    return {
-     id:x.type+"-"+x.id,name:String(t.name),lat:p.lat,lng:p.lon,
-     distance:Math.round(distance(lat,lng,p.lat,p.lon)),
-     address:[t["addr:street"],t["addr:housenumber"]].filter(Boolean).join(" "),
-     category:cat==="all"?(t.cuisine||"餐饮"):cat,source:"nearby"
-    };
+    return {id:x.type+"-"+x.id,name:String(t.name),lat:p.lat,lng:p.lon,distance:Math.round(distance(lat,lng,p.lat,p.lon)),address:[t["addr:street"],t["addr:housenumber"]].filter(Boolean).join(" "),category:cat==="all"?(t.cuisine||"餐饮"):cat,source:"nearby"};
    }).filter(Boolean).sort((a,b)=>a.distance-b.distance);
-   const seen=new Set(),out=[];
-   for(const x of list){const k=x.name.trim().toLowerCase();if(!k||seen.has(k))continue;seen.add(k);out.push(x);if(out.length>=80)break}
-   if(out.length)return out;
+   if(list.length)return list.slice(0,80);
   }catch(e){last=e.name==="AbortError"?"地图源响应超时":"地图源连接失败"}finally{clearTimeout(timer)}
- }
- // 3) Nominatim 搜索：作为 OSM 的第二种真实检索方式，避免 Overpass 空结果
- const terms=cat==="all"?["restaurant","food","cafe","fast food"]:({正餐:"restaurant",小吃:"fast food",烧烤:"barbecue",火锅:"hot pot",奶茶:"bubble tea",甜品:"dessert"}[cat]||"restaurant");
- const termList=Array.isArray(terms)?terms:[terms];
- for(const term of termList){
-  try{
-   const u="https://nominatim.openstreetmap.org/search?format=jsonv2&limit=40&addressdetails=1&dedupe=1&accept-language=zh-CN&q="+encodeURIComponent(term)+"&viewbox="+encodeURIComponent((lng-0.06)+","+ (lat+0.06)+","+ (lng+0.06)+","+ (lat-0.06))+"&bounded=1";
-   const r=await fetch(u,{cache:"no-store",headers:{Accept:"application/json"}});
-   if(!r.ok)continue;
-   const data=await r.json();
-   const list=data.map(x=>{
-    const la=Number(x.lat),lo=Number(x.lon);if(!x.display_name||!Number.isFinite(la)||!Number.isFinite(lo))return null;
-    return {id:"nom-"+x.place_id,name:x.name||x.display_name.split(",")[0],lat:la,lng:lo,distance:Math.round(distance(lat,lng,la,lo)),address:x.display_name,category:cat==="all"?"餐饮":cat,source:"nearby"};
-   }).filter(Boolean).sort((a,b)=>a.distance-b.distance);
-   if(list.length)return list;
-  }catch(_){}
  }
  throw new Error(last||"附近暂时没有检索到真实商家，请扩大范围或换一个类别。");
 }
