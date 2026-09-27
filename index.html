@@ -54,6 +54,16 @@
       </div>
     </section>
   </div>
+    <section class="card">
+      <div class="label">几个人吃</div>
+      <div class="chips" id="people">
+        <button class="chip active" data-v="all">不限</button>
+        <button class="chip" data-v="single">单人餐</button>
+        <button class="chip" data-v="double">双人餐</button>
+        <button class="chip" data-v="2-3">2–3人餐</button>
+        <button class="chip" data-v="6-8">6–8人餐</button>
+      </div>
+    </section>
 
   <button class="draw" id="draw">🎲 开始抽外卖</button>
   <section class="stage" id="stage"><div class="slot">🎁</div><h2 id="stageTitle">正在寻找外卖……</h2><p id="stageText">筛选真实商家 · 随机盲盒</p></section>
@@ -103,13 +113,13 @@
 
 <script>
 const WORKER="https://restless-field-1986.lx230632239.workers.dev";
-const state={platform:"all",budget:"all",category:"all",current:null,history:JSON.parse(localStorage.getItem("delivery_history_v1")||"[]")};
+const state={platform:"all",budget:"all",category:"all",people:"all",current:null,history:JSON.parse(localStorage.getItem("delivery_history_v1")||"[]")};
 function $(id){return document.getElementById(id)}
 function bindChips(id,key){document.querySelectorAll("#"+id+" .chip").forEach(b=>b.onclick=()=>{document.querySelectorAll("#"+id+" .chip").forEach(x=>x.classList.remove("active"));b.classList.add("active");state[key]=b.dataset.v})}
-bindChips("platform","platform");bindChips("budget","budget");bindChips("category","category");
+bindChips("platform","platform");bindChips("budget","budget");bindChips("category","category");bindChips("people","people");
 async function fetchLive(){
  const p=state.platform==="meituan"?"meituan":"taobao";
- const qs=new URLSearchParams({platform:p,budget:state.budget==="all"?"":state.budget,category:state.category==="all"?"":state.category});
+ const qs=new URLSearchParams({platform:p,budget:state.budget==="all"?"":state.budget,category:state.category==="all"?"":state.category,people:state.people==="all"?"":state.people});
  const r=await fetch(WORKER+"/delivery?"+qs.toString(),{cache:"no-store"});
  const j=await r.json();
  if(!r.ok||!j.ok) throw new Error(j.error||"外卖源暂不可用");
@@ -151,7 +161,7 @@ $("aiBtn").onclick=async()=>{
  const x=state.current;if(!x)return;
  $("aiText").textContent="AI 正在帮你判断……";$("aiBtn").disabled=true;
  try{
-  const r=await fetch(WORKER+"/food",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({mode:"decide",candidates:[{n:x.name,cat:x.category,region:x.shop}],requestText:"这是外卖盲盒抽中的真实商品，请给出简短、自然、不过度营销的选择理由"})});
+  const r=await fetch(WORKER+"/food",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({mode:"decide",candidates:[{n:x.name,cat:x.category,region:x.shop}],people:state.people,requestText:"这是外卖盲盒抽中的真实商品，请给出简短、自然、不过度营销的选择理由"})});
   const j=await r.json();$("aiText").textContent=j.reason||"今天就吃它，别纠结了。";
  }catch(e){$("aiText").textContent="今天就吃它，别纠结了。"}finally{$("aiBtn").disabled=false}
 };
