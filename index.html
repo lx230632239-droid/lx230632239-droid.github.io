@@ -323,13 +323,19 @@ function tastyDesc(f){
   if(cat==="正餐")return "热菜刚出锅香气最足，酱汁裹着食材，鲜香和锅气一起入口，配米饭吃尤其满足。";
   return "热乎乎端上桌，香气扑面而来，入口层次丰富，适合今晚想认真吃一顿的时候。";
 }
-async function showResult(f){
+function showResult(f){
   current=f;const s=score(f);
-  $("resultCat").textContent=(catIcon[f.cat]||"🍽️")+" "+f.cat;$("resultName").textContent=f.n;
+  $("resultCat").textContent=(catIcon[f.cat]||"🍽️")+" "+esc(f.cat);
+  $("resultName").textContent=f.n;
   $("resultDesc").textContent=tastyDesc(f);
-  $("recommend").textContent=s.r+"/5";$("taste").textContent=s.t+"/5";$("resultRegion").innerHTML="📍 <b>地点：</b>"+esc(f.region||"我的菜单")+"<br>📖 <b>故事：</b>"+esc(foodStory(f))+"<br>🍴 <b>点评：</b>"+esc(tastyDesc(f));
-  $("resultPhoto").innerHTML=photoBox(f,"result");$("result").classList.add("show");
+  $("recommend").textContent=s.r+"/5";
+  $("taste").textContent=s.t+"/5";
+  $("resultRegion").innerHTML="📍 <b>地点：</b>"+esc(f.region||"我的菜单")+"<br>📖 <b>故事：</b>"+esc(foodStory(f))+"<br>🍴 <b>点评：</b>"+esc(tastyDesc(f));
+  $("resultPhoto").innerHTML=photoBox(f,"result");
+  $("result").classList.add("show");
+  $("result").scrollIntoView({behavior:"smooth",block:"start"});
   celebrate();
+  setTimeout(()=>{try{aiFood(f)}catch(e){console.warn("AI food start",e)}},80);
 }
 
 let musicMode="food",userAudio=null,musicAudio=null,musicOn=false,onlineSongs=[],currentLyrics=[],musicSeq=0,lyricsSeq=0,drawTimer=0,drawSeq=0;
@@ -382,7 +388,21 @@ function syncLyrics(){
   const active=idx>=0?document.querySelector("[data-lyric='"+idx+"']"):null;
   if(active)active.scrollIntoView({block:"center",behavior:"smooth"});
 }
-function celebrate(){winSound();for(let i=0;i<28;i++){const e=document.createElement("i");e.className="confetti";e.style.left=(10+Math.random()*80)+"vw";e.style.setProperty("--x",(Math.random()*180-90)+"px");e.style.animationDelay=(Math.random()*.3)+"s";document.body.appendChild(e);setTimeout(()=>e.remove(),2100)}for(let i=0;i<14;i++){const e=document.createElement("i");e.className="fire";e.style.setProperty("--x",(Math.random()*280-140)+"px");e.style.setProperty("--y",(Math.random()*240-120)+"px");document.body.appendChild(e);setTimeout(()=>e.remove(),1000)}}
+let audioCtx=null;
+function beep(freq=660,duration=.12,volume=.035){
+  try{
+    audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.type="sine";o.frequency.value=freq;g.gain.value=volume;o.connect(g);g.connect(audioCtx.destination);
+    o.start();g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+duration);o.stop(audioCtx.currentTime+duration);
+  }catch(e){}
+}
+function drawSound(){beep(520,.08,.025);setTimeout(()=>beep(760,.08,.025),90);setTimeout(()=>beep(980,.12,.025),180)}
+function celebrate(){
+  beep(880,.1,.03);setTimeout(()=>beep(1180,.16,.03),100);
+  for(let i=0;i<28;i++){const e=document.createElement("i");e.className="confetti";e.style.left=(10+Math.random()*80)+"vw";e.style.setProperty("--x",(Math.random()*180-90)+"px");e.style.animationDelay=(Math.random()*.3)+"s";document.body.appendChild(e);setTimeout(()=>e.remove(),2100)}
+  for(let i=0;i<14;i++){const e=document.createElement("i");e.className="fire";e.style.setProperty("--x",(Math.random()*280-140)+"px");e.style.setProperty("--y",(Math.random()*240-120)+"px");document.body.appendChild(e);setTimeout(()=>e.remove(),1000)}
+}
 
 function draw(){
   const run=++drawSeq;
@@ -391,25 +411,30 @@ function draw(){
   if(!Array.isArray(a)||!a.length){alert("当前分类还没有菜品");return}
   const winner=a[Math.floor(Math.random()*a.length)];
   const seq=[];
-  for(let i=0;i<13;i++)seq.push(a[Math.floor(Math.random()*a.length)]);
-  seq[11]=winner;
-  $("draw").classList.add("show");
-  $("result").classList.remove("show");
-  $("drawTitle").textContent="正在抽取……";
-  const tr=$("track");
-  tr.style.transition="none";tr.style.transform="translateX(0)";
+  for(let i=0;i<17;i++)seq.push(a[Math.floor(Math.random()*a.length)]);
+  seq[15]=winner;
+  const drawBox=$("draw"),resultBox=$("result"),tr=$("track");
+  drawBox.classList.add("show");
+  resultBox.classList.remove("show");
+  $("drawTitle").textContent="🎁 正在抽取……";
+  tr.style.transition="none";
+  tr.style.transform="translateX(0)";
   tr.innerHTML=seq.map(f=>"<div class='mini'>"+photoBox(f,"mini")+"<b>"+esc(f.n)+"</b></div>").join("");
-  try{drawSound()}catch(e){console.warn("drawSound",e)}
+  drawSound();
   requestAnimationFrame(()=>{
-    tr.style.transition="transform 2.5s cubic-bezier(.1,.8,.15,1)";
-    tr.style.transform="translateX(-"+(11*133-66)+"px)";
+    if(run!==drawSeq)return;
+    tr.style.transition="transform 2.9s cubic-bezier(.08,.72,.12,1)";
+    tr.style.transform="translateX(-"+(15*133-66)+"px)";
   });
   drawTimer=setTimeout(()=>{
     if(run!==drawSeq)return;
-    $("drawTitle").textContent="✨ 决定好了！";
-    try{showResult(winner)}catch(e){console.error(e)}
-    try{history.push({...winner});history=history.slice(-30);save("food_hist_v5",history);renderRecords()}catch(e){console.error(e)}
-  },2650);
+    $("drawTitle").textContent="✨ 抽中了！";
+    showResult(winner);
+    history.push({...winner});
+    history=history.slice(-30);
+    save("food_hist_v5",history);
+    renderRecords();
+  },3050);
   try{hydrate()}catch(e){console.warn("hydrate",e)}
 }
 
