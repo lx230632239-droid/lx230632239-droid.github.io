@@ -113,6 +113,26 @@ export default {
       },200,origin);
     }
 
+    if (url.pathname === "/lyrics") {
+      if (request.method !== "GET") return json({ok:false,error:"歌词搜索只接受 GET 请求"},405,origin);
+      const track=String(url.searchParams.get("track")||"").trim().slice(0,160);
+      const artist=String(url.searchParams.get("artist")||"").trim().slice(0,120);
+      if(!track) return json({ok:false,error:"缺少歌曲名"},400,origin);
+      try{
+        const api="https://lrclib.net/api/get?track_name="+encodeURIComponent(track)+"&artist_name="+encodeURIComponent(artist);
+        const r=await fetch(api,{headers:{"Accept":"application/json","User-Agent":"EatWhat-Music/1.0"}});
+        if(!r.ok)return json({ok:true,lines:[]},200,origin);
+        const data=await r.json();
+        const raw=String(data.syncedLyrics||"");
+        const lines=raw.split(/\r?\n/).map(line=>{
+          const m=line.match(/^\[(\d+):(\d+(?:\.\d+)?)\]\s*(.*)$/);
+          if(!m)return null;
+          return {time:Number(m[1])*60+Number(m[2]),text:String(m[3]||"").trim()};
+        }).filter(x=>x&&x.text);
+        return json({ok:true,track,artist,lines},200,origin);
+      }catch(e){return json({ok:true,lines:[]},200,origin)}
+    }
+
     if (url.pathname !== "/food") {
       return json({ ok: true, service: "吃点啥 AI", message: "AI接口已部署，请使用 POST /food" }, 200, origin);
     }
