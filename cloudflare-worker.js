@@ -201,6 +201,25 @@ export default {
     }
 
 
+    if (url.pathname === "/delivery/detail") {
+      if (request.method !== "GET") return json({ok:false,error:"外卖详情接口只接受 GET 请求"},405,origin);
+      const itemId=String(url.searchParams.get("item_id")||"").trim();
+      if(!itemId) return json({ok:false,error:"缺少商品ID"},400,origin);
+      if(!env.TAOBAO_APP_KEY || !env.TAOBAO_APP_SECRET || !env.TAOBAO_PID) return json({ok:false,error:"淘宝闪购推广参数尚未配置"},503,origin);
+      const qr={biz_type:String(env.TAOBAO_BIZ_TYPE||"union_item"),pid:String(env.TAOBAO_PID),item_id:itemId};
+      const params={method:"alibaba.alsc.union.eleme.promotion.itempromotion.get",app_key:String(env.TAOBAO_APP_KEY),format:"json",sign_method:"hmac",timestamp:new Date().toLocaleString("sv-SE",{timeZone:"Asia/Shanghai"}).replace("T"," "),v:"2.0",query_request:JSON.stringify(qr)};
+      params.sign=taobaoSign(params,String(env.TAOBAO_APP_SECRET));
+      try{
+        const r=await fetch("https://eco.taobao.com/router/rest",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},body:new URLSearchParams(params)});
+        const data=await r.json();
+        const root=data?.alibaba_alsc_union_eleme_promotion_itempromotion_get_response||data;
+        if(!r.ok||root?.error_response||Number(root?.result_code||0)!==0) return json({ok:false,error:String(root?.error_message||root?.error_response?.sub_msg||root?.message||"淘宝闪购详情获取失败")},502,origin);
+        const x=root?.data||{};
+        const url=x?.link?.h5_promotion?.short_link||x?.link?.h5_promotion?.h5_url||x?.link?.taobao_promotion?.h5_short_url||x?.link?.taobao_promotion?.h5_url||x?.link?.app_promotion?.deep_link||"";
+        return json({ok:true,source:"taobao",url,itemId,name:String(x.item_name||""),image:String(x.picture||"")},200,origin);
+      }catch(e){return json({ok:false,error:"淘宝闪购详情网络请求失败"},502,origin)}
+    }
+
     if (url.pathname === "/delivery") {
       if (request.method !== "GET") return json({ok:false,error:"外卖接口只接受 GET 请求"},405,origin);
       const platform=String(url.searchParams.get("platform")||"taobao").trim();
