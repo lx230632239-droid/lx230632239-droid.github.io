@@ -135,7 +135,6 @@ async function aiFood(f){
 }
 
 const FOOD_DATA=[["螺蛳粉","主食","🍜","广西柳州"],["兰州牛肉面","主食","🍜","甘肃兰州"],["重庆小面","主食","🍜","重庆"],["热干面","主食","🍜","湖北武汉"],["炸酱面","主食","🍜","北京"],["担担面","主食","🍜","四川"],["蛋炒饭","主食","🍚","全国"],["扬州炒饭","主食","🍚","江苏扬州"],["卤肉饭","主食","🍚","台湾"],["煲仔饭","主食","🍚","广东"],["宫保鸡丁","正餐","🍗","四川"],["鱼香肉丝","正餐","🥩","四川"],["麻婆豆腐","正餐","🌶️","四川"],["回锅肉","正餐","🥩","四川"],["红烧肉","正餐","🥩","全国"],["糖醋排骨","正餐","🍖","江南"],["酸菜鱼","正餐","🐟","重庆"],["北京烤鸭","正餐","🦆","北京"],["红烧狮子头","正餐","🍽️","中国各地"],["松鼠桂鱼","正餐","🍽️","中国各地"],["肉夹馍","小吃","🥙","陕西西安"],["生煎包","小吃","🥟","上海"],["小笼包","小吃","🥟","江南"],["锅贴","小吃","🥟","全国"],["肠粉","小吃","🥟","广东"],["鸡蛋灌饼","小吃","🥞","全国"],["手抓饼","小吃","🥞","全国"],["臭豆腐","小吃","🧈","湖南长沙"],["狼牙土豆","小吃","🥔","四川"],["关东煮","小吃","🍢","日本"],["提拉米苏","甜品","🍰","意大利"],["草莓蛋糕","甜品","🍓","全国"],["芒果千层","甜品","🥭","全国"],["抹茶蛋糕","甜品","🍵","日本"],["巧克力熔岩蛋糕","甜品","🍫","法国"],["泡芙","甜品","🥐","法国"],["蛋挞","甜品","🥧","广东"],["双皮奶","甜品","🥛","广东顺德"],["杨枝甘露","甜品","🥭","广东"],["芋圆","甜品","🍧","台湾"],["黑糖珍珠奶茶","奶茶","🧋","台湾"],["芝士奶茶","奶茶","🧋","全国"],["芋泥奶茶","奶茶","🧋","全国"],["抹茶奶茶","奶茶","🧋","日本"],["椰香奶茶","奶茶","🧋","全国"],["茉莉奶绿","奶茶","🧋","全国"],["乌龙奶茶","奶茶","🧋","全国"],["蜜桃乌龙奶茶","奶茶","🧋","全国"],["草莓奶茶","奶茶","🧋","全国"],["红茶拿铁","奶茶","🧋","全国"],["鲜榨橙汁","饮品","🍊","全国"],["西瓜汁","饮品","🍉","全国"],["百香果茶","饮品","🥭","全国"],["蜜桃气泡水","饮品","🍑","全国"],["青提气泡水","饮品","🍇","全国"],["蜂蜜柚子茶","饮品","🍯","韩国"],["酸梅汤","饮品","🥤","中国"],["桂花乌龙茶","饮品","🍵","中国"],["柠檬红茶","饮品","🍋","中国"],["椰青冰饮","饮品","🥥","海南"],["烤羊肉串","烧烤","🍢","新疆"],["烤牛肉串","烧烤","🍢","全国"],["烤五花肉","烧烤","🥩","全国"],["烤鸡翅","烧烤","🍗","全国"],["烤排骨","烧烤","🍖","全国"],["烤茄子","烧烤","🍆","全国"],["烤玉米","烧烤","🌽","全国"],["烤鱿鱼","烧烤","🦑","沿海地区"],["烤扇贝","烧烤","🐚","沿海地区"],["烤全羊","烧烤","🐑","内蒙古"],["重庆火锅","火锅","🍲","重庆"],["潮汕牛肉火锅","火锅","🥩","广东潮汕"],["番茄火锅","火锅","🍅","全国"],["菌汤火锅","火锅","🍄","云南"],["酸菜火锅","火锅","🥬","东北"],["羊蝎子火锅","火锅","🥩","北京"],["老北京铜锅涮肉","火锅","🥩","北京"],["椰子鸡火锅","火锅","🥥","海南"],["鱼头火锅","火锅","🐟","湖南"],["海鲜火锅","火锅","🦐","沿海地区"],["小龙虾","海鲜","🦞","湖北潜江"],["蒜蓉生蚝","海鲜","🦪","沿海地区"],["椒盐皮皮虾","海鲜","🦐","沿海地区"],["清蒸大闸蟹","海鲜","🦀","江苏"],["白灼虾","海鲜","🦐","广东"],["烤扇贝","海鲜","🐚","沿海地区"],["海鲜粥","海鲜","🥣","广东"],["花甲粉","海鲜","🍜","沿海地区"],["蒜蓉龙虾","海鲜","🦐","沿海风味"],["芝士焗龙虾","海鲜","🦐","沿海风味"],["豆浆油条","早餐","🥛","全国"],["小米粥","早餐","🥣","全国"],["煎饼果子","早餐","🥞","天津"],["胡辣汤","早餐","🥣","河南"],["肠粉早餐","早餐","🥟","广东"],["烧麦","早餐","🥟","全国"],["包子","早餐","🥟","全国"],["饭团","早餐","🍙","日本"],["鸡蛋灌饼加脆","早餐","🥞","早餐风味"],["火腿鸡蛋饼","早餐","🥞","早餐风味"],["麻辣小龙虾","夜宵","🦞","湖北"],["炸串","夜宵","🍢","全国"],["烤冷面","夜宵","🍜","东北"],["炒粉","夜宵","🍜","全国"],["砂锅粥","夜宵","🥣","广东"],["大排档海鲜","夜宵","🦐","沿海地区"],["串串香","夜宵","🍢","四川"],["鸭脖","夜宵","🍗","湖北"],["麻辣烫","夜宵","🍢","夜宵风味"],["冒菜夜宵","夜宵","🍢","夜宵风味"],["西红柿炒鸡蛋","家常菜","🍅","全国"],["可乐鸡翅","家常菜","🍗","全国"],["番茄牛腩","家常菜","🥩","全国"],["土豆炖牛肉","家常菜","🥔","全国"],["地三鲜","家常菜","🥔","东北"],["小鸡炖蘑菇","家常菜","🍗","东北"],["鱼香茄子","家常菜","🍆","四川"],["蒜蓉粉丝虾","家常菜","🦐","全国"],["青椒炒肉","家常菜","🥘","家常风味"],["小炒黄牛肉","家常菜","🥘","家常风味"]];
-const APP_VERSION="FINAL-20260927-V4";
 const SYSTEM_CATS=["主食","正餐","小吃","甜品","奶茶","饮品","烧烤","火锅","海鲜","早餐","夜宵","家常菜"];
 const $=id=>document.getElementById(id);
 const safe=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k)||"null");return v==null?d:v}catch(e){return d}};
@@ -180,20 +179,6 @@ const queryMap={
 "西红柿炒鸡蛋":"tomato scrambled eggs","可乐鸡翅":"cola chicken wings","番茄牛腩":"tomato beef brisket","土豆炖牛肉":"beef potato stew","地三鲜":"di san xian","小鸡炖蘑菇":"chicken mushroom stew","鱼香茄子":"yu xiang eggplant","蒜蓉粉丝虾":"garlic shrimp vermicelli","青椒炒肉":"green pepper pork","小炒黄牛肉":"stir fried beef"
 };
 
-async function commonsImage(f){
-  if(f.img)return f.img;
-  if(imgCache[f.n])return imgCache[f.n];
-  const q=queryMap[f.n]||f.n+" food";
-  const url="https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch="+encodeURIComponent(q)+"&gsrnamespace=6&gsrlimit=8&prop=imageinfo&iiprop=url|mime&iiurlwidth=700&format=json&origin=*";
-  try{
-    const r=await fetch(url);const j=await r.json();const pages=Object.values(j.query?.pages||{});
-    const hit=pages.find(p=>p.imageinfo?.[0]?.mime?.startsWith("image/")&&p.imageinfo?.[0]?.thumburl)||pages.find(p=>p.imageinfo?.[0]?.mime?.startsWith("image/"));
-    const u=hit?.imageinfo?.[0]?.thumburl||hit?.imageinfo?.[0]?.url;
-    if(u){imgCache[f.n]=u;save("food_image_cache_v1",imgCache);return u}
-  }catch(e){}
-  return "";
-}
-
 function cartoonKind(n){if(/奶茶|奶绿|拿铁/.test(n))return"drink";if(/蛋糕|蛋挞|泡芙|千层|布丁|冰淇淋|提拉米苏|双皮奶|杨枝甘露|芋圆/.test(n))return"dessert";if(/火锅/.test(n))return"hotpot";if(/小龙虾|龙虾|生蚝|皮皮虾|螃蟹|大闸蟹|虾|鱼|鱿鱼|扇贝|花甲|海鲜/.test(n))return"sea";if(/烧烤|烤|串|炸串/.test(n))return"grill";if(/面|粉|米线/.test(n))return"noodle";if(/饭|煲仔/.test(n))return"rice";if(/饺|包|烧麦|锅贴|肠粉|饭团|煎饼|灌饼|手抓饼/.test(n))return"snack";if(/鸡|鸭|牛|羊|猪|肉|排骨|狮子头/.test(n))return"meat";if(/早餐|豆浆|油条|粥|鸡蛋|胡辣汤/.test(n))return"breakfast";return"plate";}
 function cartoonBox(f,kind){
  const cls=kind==="result"?"resultPhoto":kind==="mini"?"miniPhoto":kind==="row"?"rowPhoto":"itemPhoto",n=esc(f.n),k=cartoonKind(f.n);
@@ -221,9 +206,10 @@ function photoBox(f,kind){
   return cartoonBox(f,kind).replace("<div class='"+cls+"'>","<div class='"+cls+"' data-food-id='"+esc(f.id)+"' data-food-name='"+esc(f.n)+"'>");
 }
 async function fetchRealFoodImage(f,node){
-  if(!f||f.img||!node||node.dataset.realLoaded==="1")return;
+  if(!f||f.img||!node||node.dataset.realLoaded==="1"||node.dataset.realLoading==="1")return;
+  node.dataset.realLoading="1";
   const key=f.id+"|"+f.n, cached=imgCache[key];
-  if(cached){node.innerHTML="<img src='"+esc(cached)+"' alt='"+esc(f.n)+"' loading='lazy'>";node.dataset.realLoaded="1";return;}
+  if(cached){node.innerHTML="<img src='"+esc(cached)+"' alt='"+esc(f.n)+"' loading='lazy'>";node.dataset.realLoaded="1";delete node.dataset.realLoading;return;}
   const q=queryMap[f.n]||f.n;
   try{
     const url="https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch="+encodeURIComponent(q+" food")+"&gsrnamespace=6&gsrlimit=12&prop=imageinfo&iiprop=url|mime&iiurlwidth=1000&format=json&origin=*";
@@ -246,14 +232,14 @@ async function fetchRealFoodImage(f,node){
       node.innerHTML="<img src='"+esc(hit.url)+"' alt='"+esc(f.n)+"' loading='lazy' referrerpolicy='no-referrer'>";
       node.dataset.realLoaded="1";
     }
-  }catch(e){}
+  }catch(e){}finally{delete node.dataset.realLoading}
 }
 async function hydrate(){
-  const nodes=document.querySelectorAll("[data-food-id]");
-  for(const node of nodes){
+  const nodes=[...document.querySelectorAll("[data-food-id]")];
+  await Promise.allSettled(nodes.map(node=>{
     const f=systemFoods.find(x=>x.id===node.dataset.foodId)||customFoods.find(x=>x.id===node.dataset.foodId);
-    if(f&&!f.img)await fetchRealFoodImage(f,node);
-  }
+    return f&&!f.img?fetchRealFoodImage(f,node):null;
+  }));
 }
 
 function render(){
@@ -346,7 +332,7 @@ async function showResult(f){
   celebrate();
 }
 
-let musicMode="food",userAudio=null,musicAudio=null,musicOn=false,onlineSongs=[],currentLyrics=[];
+let musicMode="food",userAudio=null,musicAudio=null,musicOn=false,onlineSongs=[],currentLyrics=[],musicSeq=0,lyricsSeq=0,drawTimer=0,drawSeq=0;
 const MUSIC_API="https://restless-field-1986.lx230632239.workers.dev/music";
 const LYRICS_API="https://restless-field-1986.lx230632239.workers.dev/lyrics";
 const moodQueries={warm:"华语 温柔 轻音乐",happy:"华语 欢快 流行",food:"美食 咖啡馆 轻快 华语"};
@@ -363,17 +349,20 @@ function renderLyrics(lines){
   box.innerHTML=currentLyrics.map((x,i)=>"<div class='lyricsLine' data-lyric='"+i+"'>"+esc(x.text)+"</div>").join("");
 }
 async function loadLyrics(s){
+  const seq=++lyricsSeq;
   renderLyrics([]);
   try{
     const r=await fetch(LYRICS_API+"?track="+encodeURIComponent(s.name)+"&artist="+encodeURIComponent(s.artist));
     const d=await r.json();
+    if(seq!==lyricsSeq)return;
     if(d.ok&&d.lines?.length)renderLyrics(d.lines);else $("lyrics").innerHTML="<div class='musicHint'>🎤 暂无这首歌的同步歌词</div>";
   }catch(e){$("lyrics").innerHTML="<div class='musicHint'>🎤 歌词暂时无法获取</div>"}
 }
 async function searchMusic(q,autoPlay=false){
+ const seq=++musicSeq;
  const box=$("musicResults");if(!q)return;
  box.innerHTML="<div class='musicHint'>🔎 正在联网找歌…</div>";
- try{const r=await fetch(MUSIC_API+"?q="+encodeURIComponent(q));const d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||"搜索失败");onlineSongs=d.results||[];if(!onlineSongs.length){box.innerHTML="<div class='musicHint'>没有找到可试听的歌曲，换个歌名或歌手试试。</div>";return}box.innerHTML=onlineSongs.map((s,i)=>"<div class='song'><img src='"+esc(s.artwork)+"' alt=''><div class='songMain'><b>"+esc(s.name)+"</b><small>"+esc(s.artist)+" · "+esc(s.album)+"</small></div><button class='songPlay' data-song='"+i+"' type='button'>▶</button></div>").join("");box.querySelectorAll("[data-song]").forEach(b=>b.onclick=()=>playSong(onlineSongs[Number(b.dataset.song)]));if(autoPlay)playSong(onlineSongs[0]);}catch(e){box.innerHTML="<div class='musicHint'>联网搜索暂时失败；手机本地音乐仍可正常播放。</div>";console.warn("music:",e)}
+ try{const r=await fetch(MUSIC_API+"?q="+encodeURIComponent(q));const d=await r.json();if(seq!==musicSeq)return;if(!r.ok||!d.ok)throw new Error(d.error||"搜索失败");onlineSongs=d.results||[];if(!onlineSongs.length){box.innerHTML="<div class='musicHint'>没有找到可试听的歌曲，换个歌名或歌手试试。</div>";return}box.innerHTML=onlineSongs.map((s,i)=>"<div class='song'><img src='"+esc(s.artwork)+"' alt=''><div class='songMain'><b>"+esc(s.name)+"</b><small>"+esc(s.artist)+" · "+esc(s.album)+"</small></div><button class='songPlay' data-song='"+i+"' type='button'>▶</button></div>").join("");box.querySelectorAll("[data-song]").forEach(b=>b.onclick=()=>playSong(onlineSongs[Number(b.dataset.song)]));if(autoPlay)playSong(onlineSongs[0]);}catch(e){box.innerHTML="<div class='musicHint'>联网搜索暂时失败；手机本地音乐仍可正常播放。</div>";console.warn("music:",e)}
 }
 function playSong(s){
   if(!s?.preview)return;
@@ -396,6 +385,8 @@ function syncLyrics(){
 function celebrate(){winSound();for(let i=0;i<28;i++){const e=document.createElement("i");e.className="confetti";e.style.left=(10+Math.random()*80)+"vw";e.style.setProperty("--x",(Math.random()*180-90)+"px");e.style.animationDelay=(Math.random()*.3)+"s";document.body.appendChild(e);setTimeout(()=>e.remove(),2100)}for(let i=0;i<14;i++){const e=document.createElement("i");e.className="fire";e.style.setProperty("--x",(Math.random()*280-140)+"px");e.style.setProperty("--y",(Math.random()*240-120)+"px");document.body.appendChild(e);setTimeout(()=>e.remove(),1000)}}
 
 function draw(){
+  const run=++drawSeq;
+  if(drawTimer)clearTimeout(drawTimer);
   const a=list();
   if(!Array.isArray(a)||!a.length){alert("当前分类还没有菜品");return}
   const winner=a[Math.floor(Math.random()*a.length)];
@@ -413,7 +404,8 @@ function draw(){
     tr.style.transition="transform 2.5s cubic-bezier(.1,.8,.15,1)";
     tr.style.transform="translateX(-"+(11*133-66)+"px)";
   });
-  setTimeout(()=>{
+  drawTimer=setTimeout(()=>{
+    if(run!==drawSeq)return;
     $("drawTitle").textContent="✨ 决定好了！";
     try{showResult(winner)}catch(e){console.error(e)}
     try{history.push({...winner});history=history.slice(-30);save("food_hist_v5",history);renderRecords()}catch(e){console.error(e)}
