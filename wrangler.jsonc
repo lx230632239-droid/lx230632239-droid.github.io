@@ -1,0 +1,5 @@
+{
+  "name": "restless-field-1986",
+  "main": "cloudflare-worker.js",
+  "compatibility_date": "2026-09-27"
+}
