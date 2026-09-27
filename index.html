@@ -151,7 +151,29 @@ function buildQuery(){
 async function fetchNearby(){
  const lat=APP.location.lat,lng=APP.location.lng,cat=APP.filters.category;
  let last="";
- // 第一优先：直接查公开真实地图搜索，速度比 Overpass 稳定
+ // 真实 POI 源 1：Photon（开放地图 POI 搜索）
+ const photonTerms=cat==="all"?["restaurant","cafe","fast food"]:({正餐:"restaurant",小吃:"fast food",烧烤:"barbecue",火锅:"hot pot",奶茶:"bubble tea",甜品:"dessert"}[cat]||"restaurant");
+ for(const term of photonTerms){
+  try{
+   const u="https://photon.komoot.io/api/?q="+encodeURIComponent(term)+"&lat="+encodeURIComponent(lat)+"&lon="+encodeURIComponent(lng)+"&limit=60&lang=zh";
+   const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),5000);
+   const r=await fetch(u,{signal:ctl.signal,cache:"no-store",headers:{Accept:"application/json"}});
+   clearTimeout(timer);
+   if(!r.ok){last="POI源 HTTP "+r.status;continue}
+   const data=await r.json(),features=Array.isArray(data.features)?data.features:[];
+   const list=features.map((f,i)=>{
+    const p=f.geometry?.coordinates||[],pr=f.properties||{};
+    const lo=Number(p[0]),la=Number(p[1]);
+    if(!Number.isFinite(la)||!Number.isFinite(lo))return null;
+    const name=pr.name||pr.street||"附近餐饮";
+    return {id:"ph-"+(pr.osm_id||i),name:String(name),lat:la,lng:lo,distance:Math.round(distance(lat,lng,la,lo)),address:[pr.street,pr.housenumber,pr.city||pr.district].filter(Boolean).join(" "),category:cat==="all"?(pr.cuisine||"餐饮"):cat,source:"nearby"};
+   }).filter(Boolean).sort((a,b)=>a.distance-b.distance);
+   const seen=new Set(),out=[];
+   for(const x of list){const k=x.name.trim().toLowerCase();if(!k||seen.has(k))continue;seen.add(k);if(x.distance<=15000)out.push(x)}
+   if(out.length)return out;
+  }catch(e){last=e.name==="AbortError"?"POI搜索超时":"POI搜索连接失败"}
+ }
+ // 真实 POI 源 2：Nominatim
  const terms=cat==="all"?["restaurant","cafe","fast food"]:({正餐:"restaurant",小吃:"fast food",烧烤:"barbecue",火锅:"hot pot",奶茶:"bubble tea",甜品:"dessert"}[cat]||"restaurant");
  for(const term of terms){
   try{
@@ -162,26 +184,14 @@ async function fetchNearby(){
    if(!r.ok){last="地图搜索 HTTP "+r.status;continue}
    const data=await r.json();
    const list=data.map(x=>{
-    const la=Number(x.lat),lo=Number(x.lon);
-    if(!x.display_name||!Number.isFinite(la)||!Number.isFinite(lo))return null;
+    const la=Number(x.lat),lo=Number(x.lon);if(!x.display_name||!Number.isFinite(la)||!Number.isFinite(lo))return null;
     return {id:"nom-"+x.place_id,name:x.name||x.display_name.split(",")[0],lat:la,lng:lo,distance:Math.round(distance(lat,lng,la,lo)),address:x.display_name,category:cat==="all"?"餐饮":cat,source:"nearby"};
    }).filter(Boolean).sort((a,b)=>a.distance-b.distance);
-   const seen=new Set(),out=[];
-   for(const x of list){
-    const k=x.name.trim().toLowerCase();
-    if(!k||seen.has(k))continue;
-    seen.add(k);out.push(x);
-   }
-   const nearby=out.filter(x=>x.distance<=15000);
-   if(nearby.length)return nearby;
-   if(out.length)return out;
+   if(list.length)return list;
   }catch(e){last=e.name==="AbortError"?"地图搜索超时":"地图搜索连接失败"}
  }
- // 第二优先：Overpass，补充餐厅 POI
- const q=buildQuery(),urls=[
-  "https://overpass-api.de/api/interpreter?data="+encodeURIComponent(q),
-  "https://overpass.kumi.systems/api/interpreter?data="+encodeURIComponent(q)
- ];
+ // 真实 POI 源 3：Overpass
+ const q=buildQuery(),urls=["https://overpass-api.de/api/interpreter?data="+encodeURIComponent(q),"https://overpass.kumi.systems/api/interpreter?data="+encodeURIComponent(q)];
  for(const url of urls){
   const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),7000);
   try{
@@ -196,7 +206,7 @@ async function fetchNearby(){
    if(list.length)return list.slice(0,80);
   }catch(e){last=e.name==="AbortError"?"地图源响应超时":"地图源连接失败"}finally{clearTimeout(timer)}
  }
- throw new Error(last||"附近暂时没有检索到真实商家，请扩大范围或换一个类别。");
+ throw new Error(last||"暂时没有获取到附近真实商家。请确认定位后重试。");
 }
 async function fetchDelivery(){
  if(!APP.location)throw new Error("请先获取当前位置");
@@ -217,14 +227,14 @@ function showResult(x){
   if(x.url){window.open(x.url,"_blank");return}
   const name=x.name||"附近餐厅";
   try{await navigator.clipboard.writeText(name)}catch(_){}
-  const p=APP.filters.platform==="all"?["meituan","taobao","eleme","jd"][Math.floor(Math.random()*4)]:APP.filters.platform;
+  const p=APP.filters.platform==="all"?"meituan":APP.filters.platform;
   const links={
    meituan:"https://waimai.meituan.com/",
    taobao:"https://tb.ele.me/",
    eleme:"https://tb.ele.me/",
    jd:"https://www.jd.com/"
   };
-  const labels={meituan:"美团外卖",taobao:"淘宝闪购",eleme:"饿了么",jd:"京东外卖"};
+  const labels={meituan:"美团外卖",taobao:"淘宝闪购",eleme:"饿了么",jd:"京东秒送"};
   window.open(links[p],"_blank");
   showMessage("已复制「"+name+"」，并打开"+labels[p]+"；直接粘贴店名搜索即可。");
  };
@@ -235,10 +245,7 @@ async function draw(){
  if(!APP.location){showMessage("请先点击「获取当前位置」。");return}
  APP.busy=true;$("draw").disabled=true;$("draw").textContent="🎲 正在抽取…";$("result").classList.remove("show");hideMessage();setStatus("正在查询");
  try{
-  let list=await fetchDelivery();
-  if(!list){
-   list=await fetchNearby();
-  }
+  let list=await fetchNearby();
   if(!list.length)throw new Error("没有找到符合条件的真实结果。");
   // 增加轻微随机权重：同样条件下不会总是抽到最近的一家
   const pool=list.slice(0,Math.min(list.length,30));
