@@ -1,0 +1,10 @@
+{
+  "name": "restless-field-1986-worker",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
