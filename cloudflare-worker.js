@@ -206,7 +206,7 @@ export default {
       const itemId=String(url.searchParams.get("item_id")||"").trim();
       if(!itemId) return json({ok:false,error:"缺少商品ID"},400,origin);
       if(!env.TAOBAO_APP_KEY || !env.TAOBAO_APP_SECRET || !env.TAOBAO_PID) return json({ok:false,error:"淘宝闪购推广参数尚未配置"},503,origin);
-      const qr={biz_type:String(env.TAOBAO_BIZ_TYPE||"union_item"),pid:String(env.TAOBAO_PID),item_id:itemId};
+      const qr={biz_type:String(env.TAOBAO_BIZ_TYPE||"hot_item"),pid:String(env.TAOBAO_PID),item_id:itemId};
       const params={method:"alibaba.alsc.union.eleme.promotion.itempromotion.get",app_key:String(env.TAOBAO_APP_KEY),format:"json",sign_method:"hmac",timestamp:new Date().toLocaleString("sv-SE",{timeZone:"Asia/Shanghai"}).replace("T"," "),v:"2.0",query_request:JSON.stringify(qr)};
       params.sign=taobaoSign(params,String(env.TAOBAO_APP_SECRET));
       try{
