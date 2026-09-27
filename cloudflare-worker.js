@@ -230,7 +230,7 @@ export default {
       if(!env.TAOBAO_APP_KEY || !env.TAOBAO_APP_SECRET || !env.TAOBAO_PID){
         return json({ok:false,live:false,code:"TAOBAO_NOT_CONFIGURED",error:"淘宝闪购推广参数尚未配置"},503,origin);
       }
-      const bizType=String(env.TAOBAO_BIZ_TYPE||"union_item");
+      const bizType=String(env.TAOBAO_BIZ_TYPE||"hot_item");
       const qr={biz_type:bizType,pid:String(env.TAOBAO_PID),page_number:1,page_size:20};
       const cityCode=String(url.searchParams.get("city_code")||"").trim();
       if(cityCode)qr.city_code=cityCode;
