@@ -139,16 +139,28 @@ async function fetchLive(){
  const lat=Number(state.location.latitude),lng=Number(state.location.longitude),radius=5000;
  const category=state.category==="all"?"":state.category;
  const categoryFilter=category==="火锅"?'["cuisine"~"hotpot",i]':category==="烧烤"?'["cuisine"~"barbecue|bbq|grill",i]':category==="奶茶"?'["cuisine"~"bubble_tea|tea",i]':category==="甜品"?'["cuisine"~"dessert|ice_cream|cake",i]':category==="小吃"?'["cuisine"~"snack|fast_food",i]':'';
- const q='[out:json][timeout:12];(nwr(around:'+radius+','+lat+','+lng+')[amenity=restaurant]'+categoryFilter+';nwr(around:'+radius+','+lat+','+lng+')[amenity=fast_food]'+categoryFilter+';);out center tags;';
+ const q='[out:json][timeout:25];(nwr(around:'+radius+','+lat+','+lng+')[amenity=restaurant]'+categoryFilter+';nwr(around:'+radius+','+lat+','+lng+')[amenity=fast_food]'+categoryFilter+';);out center tags;';
  const endpoints=["https://overpass-api.de/api/interpreter","https://overpass.kumi.systems/api/interpreter"];
- let data=null;
+ let data=null,lastError="";
  for(const endpoint of endpoints){
-  try{const r=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"text/plain;charset=UTF-8"},body:q});if(r.ok){data=await r.json();break;}}catch(e){}
+  try{
+   const r=await fetch(endpoint+"?data="+encodeURIComponent(q),{method:"GET",headers:{"Accept":"application/json"}});
+   if(r.ok){data=await r.json();break}
+   lastError="数据源HTTP "+r.status;
+  }catch(e){lastError="数据源连接失败"}
  }
- if(!data) throw new Error("附近真实商家源暂时不可用，请稍后重试");
- const hav=(a,b,c,d)=>{const R=6371000,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,z=Math.sin(x/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2;return R*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z));};
- const list=(data.elements||[]).map(x=>{const t=x.tags||{},p=x.type==="node"?{lat:x.lat,lon:x.lon}:{lat:x.center?.lat,lon:x.center?.lon};if(!t.name||p.lat==null||p.lon==null)return null;const d=Math.round(hav(lat,lng,p.lat,p.lon));const cuisine=String(t.cuisine||"");const cat=category||(cuisine||(t.amenity==="fast_food"?"小吃":"正餐"));const map="https://www.openstreetmap.org/?mlat="+encodeURIComponent(p.lat)+"&mlon="+encodeURIComponent(p.lon)+"#map=19/"+encodeURIComponent(p.lat)+"/"+encodeURIComponent(p.lon);return {source:"nearby",id:String(x.type)+"-"+String(x.id),name:String(t.name),price:0,originalPrice:0,discount:"",image:String(t.image||""),sales:"",stock:"",shops:1,category:cat,distance:d,url:map,lat:p.lat,lng:p.lon,address:[t["addr:street"],t["addr:housenumber"]].filter(Boolean).join(" ")}}).filter(Boolean).sort((a,b)=>a.distance-b.distance);
- const out=[],seen=new Set();for(const x of list){const k=x.name.toLowerCase();if(!seen.has(k)){seen.add(k);out.push(x)}if(out.length>=40)break}
+ if(!data) throw new Error(lastError||"附近真实商家源暂时不可用");
+ const hav=(a,b,c,d)=>{const R=6371000,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,z=Math.sin(x/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2;return R*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z))};
+ const list=(data.elements||[]).map(x=>{
+  const t=x.tags||{},p=x.type==="node"?{lat:x.lat,lon:x.lon}:{lat:x.center?.lat,lon:x.center?.lon};
+  if(!t.name||p.lat==null||p.lon==null)return null;
+  const d=Math.round(hav(lat,lng,p.lat,p.lon)),cuisine=String(t.cuisine||"");
+  const cat=category||(cuisine||(t.amenity==="fast_food"?"小吃":"正餐"));
+  const map="https://www.openstreetmap.org/?mlat="+encodeURIComponent(p.lat)+"&mlon="+encodeURIComponent(p.lon)+"#map=19/"+encodeURIComponent(p.lat)+"/"+encodeURIComponent(p.lon);
+  return {source:"nearby",id:String(x.type)+"-"+String(x.id),name:String(t.name),price:0,originalPrice:0,discount:"",image:String(t.image||""),sales:"",stock:"",shops:1,category:cat,distance:d,url:map,lat:p.lat,lng:p.lon,address:[t["addr:street"],t["addr:housenumber"]].filter(Boolean).join(" ")};
+ }).filter(Boolean).sort((a,b)=>a.distance-b.distance);
+ const out=[],seen=new Set();
+ for(const x of list){const k=x.name.toLowerCase();if(!seen.has(k)){seen.add(k);out.push(x)}if(out.length>=40)break}
  return out;
 }
 function saveHistory(x){state.history=[x,...state.history.filter(y=>y.name!==x.name)].slice(0,8);localStorage.setItem("delivery_history_v1",JSON.stringify(state.history));renderHistory()}
