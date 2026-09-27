@@ -75,16 +75,7 @@
         <span class="tag" id="sourceTag">外卖盲盒</span>
         <div class="name" id="foodName">—</div>
         <div class="shop" id="shopName">—</div>
-        <div class="meta">
-          <div><b id="price">—</b>价格</div>
-          <div><b id="rating">—</b>评分</div>
-          <div><b id="distance">—</b>距离</div>
-        </div>
-        <div class="meta">
-          <div><b id="delivery">—</b>配送</div>
-          <div><b id="sales">—</b>销量</div>
-          <div><b id="categoryOut">—</b>品类</div>
-        </div>
+        <div class="meta"><div><b id="price">—</b>优惠价</div><div><b id="originalPrice">—</b>原价</div><div><b id="discount">—</b>折扣</div></div><div class="meta"><div><b id="shops">—</b>适用门店</div><div><b id="sales">—</b>销量</div><div><b id="stock">—</b>库存</div></div>
         <div class="actions">
           <button class="action meituan" id="goMeituan">🟢 去美团</button>
           <button class="action taobao" id="goTaobao">🟠 去淘宝闪购</button>
@@ -129,8 +120,7 @@ function saveHistory(x){state.history=[x,...state.history.filter(y=>y.name!==x.n
 function renderHistory(){$("history").innerHTML=state.history.length?state.history.map(x=>"<div>"+x.emoji+" <b>"+x.name+"</b> · "+x.shop+" · ¥"+x.price+"</div>").join(""):'<div class="empty">还没有抽取记录</div>'}
 function showResult(x){
  state.current=x;$("cover").innerHTML=x.image?`<img src="${x.image}" alt="">`:(x.emoji||"🍱");$("sourceTag").textContent=x.source==="taobao"?"淘宝闪购实时":"外卖盲盒";
- $("foodName").textContent=x.name;$("shopName").textContent=x.shop;$("price").textContent="¥"+x.price;$("rating").textContent=x.rating;
- $("distance").textContent=x.distance;$("delivery").textContent=x.delivery;$("sales").textContent=x.sales;$("categoryOut").textContent=x.category;
+ $("foodName").textContent=x.name;$("shopName").textContent=x.shops?"适用 "+x.shops+" 家门店":"淘宝闪购餐饮商品";$("price").textContent="¥"+x.price;$("originalPrice").textContent=x.originalPrice?"¥"+x.originalPrice:"—";$("discount").textContent=x.discount?x.discount+"折":"—";$("shops").textContent=x.shops||"—";$("sales").textContent=x.sales||"—";$("stock").textContent=x.stock||"—";
  $("goMeituan").classList.add("hidden");$("goTaobao").classList.toggle("hidden",!x.url);
  $("result").classList.add("show");$("result").scrollIntoView({behavior:"smooth",block:"start"});saveHistory(x);
 }
@@ -151,11 +141,7 @@ async function draw(){
   $("stage").classList.remove("show");$("draw").disabled=false;$("draw").classList.remove("loading");
  }
 }
-function openProvider(type){
- const x=state.current;if(!x)return;
- if(x.url)window.open(x.url,"_blank");
- else alert(type==="meituan"?"美团真实跳转将在官方接口接通后启用。":"淘宝闪购真实跳转将在推广位接通后启用。");
-}
+async function openProvider(type){const x=state.current;if(!x)return;if(type!=="taobao"){alert("目前已接入淘宝闪购官方源，美团官方实时接口暂未配置。");return;}if(x.url){window.open(x.url,"_blank");return;}try{const r=await fetch(WORKER+"/delivery/detail?item_id="+encodeURIComponent(x.id),{cache:"no-store"});const j=await r.json();if(!r.ok||!j.ok)throw new Error(j.error||"暂无官方跳转链接");if(j.url)window.open(j.url,"_blank");else alert("该商品暂未返回可用的官方跳转链接。");}catch(e){alert(e.message||"暂时无法打开淘宝闪购");}}
 $("draw").onclick=draw;$("again").onclick=draw;$("goMeituan").onclick=()=>openProvider("meituan");$("goTaobao").onclick=()=>openProvider("taobao");
 $("aiBtn").onclick=async()=>{
  const x=state.current;if(!x)return;
