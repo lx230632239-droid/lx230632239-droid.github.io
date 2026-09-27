@@ -73,13 +73,14 @@
 
 <section class="section card notice">
   <b>数据说明</b><br>
-  核心抽取使用真实附近餐饮地图数据，不编造价格、销量或库存。当前版本把“实时外卖平台菜单/优惠”与“附近真实商家”严格分开；美团、淘宝闪购官方实时菜单需要对应平台开放接口权限，不能用假数据冒充。
+  核心抽取使用真实附近餐饮地图数据，不编造价格、销量或库存。淘宝闪购已预留官方实时接口通道；美团已预留官方入口，但在未取得美团开放平台接口权限前，不会伪造商家、价格或优惠数据。
 </section>
 </main>
 
 <script>
 "use strict";
 const APP={location:null,current:null,busy:false,filters:{platform:"all",budget:"all",category:"all",people:"all"}};
+const WORKER="https://restless-field-1986.lx230632239.workers.dev";
 const $=id=>document.getElementById(id);
 const CONFIG={
  platform:[["all","全部"],["meituan","美团"],["taobao","淘宝闪购"]],
@@ -148,50 +149,84 @@ function buildQuery(){
  return '[out:json][timeout:12];(nwr(around:5000,'+lat+','+lng+')[amenity=restaurant]'+cf+';nwr(around:5000,'+lat+','+lng+')[amenity=fast_food]'+cf+';);out center tags;';
 }
 async function fetchNearby(){
- const q=buildQuery(),urls=["https://overpass-api.de/api/interpreter","https://overpass.kumi.systems/api/interpreter"];
+ const q=buildQuery(),urls=[WORKER+"/nearby?lat="+encodeURIComponent(APP.location.lat)+"&lng="+encodeURIComponent(APP.location.lng)+"&radius=5000&category="+encodeURIComponent(APP.filters.category), "https://overpass-api.de/api/interpreter?data="+encodeURIComponent(q), "https://overpass.kumi.systems/api/interpreter?data="+encodeURIComponent(q)];
  let last="";
- for(const base of urls){
+ for(const url of urls){
   const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),9000);
   try{
-   const r=await fetch(base+"?data="+encodeURIComponent(q),{signal:ctl.signal,headers:{Accept:"application/json"}});
+   const r=await fetch(url,{signal:ctl.signal,cache:"no-store",headers:{Accept:"application/json"}});
    if(!r.ok){last="数据源 HTTP "+r.status;continue}
    const data=await r.json();
+   if(data&&Array.isArray(data.results)) return data.results.map(x=>({id:x.id,name:x.name,lat:x.lat,lng:x.lng??x.lon,distance:Number(x.distance)||0,address:x.address||"",category:x.category||"餐饮",source:x.source||"nearby",price:x.price}));
    const list=(data.elements||[]).map(x=>{
     const t=x.tags||{},p=x.type==="node"?{lat:x.lat,lon:x.lon}:{lat:x.center?.lat,lon:x.center?.lon};
     if(!t.name||p.lat==null||p.lon==null)return null;
     const d=Math.round(distance(APP.location.lat,APP.location.lng,p.lat,p.lon));
-    const cuisine=String(t.cuisine||"");
-    return {id:x.type+"-"+x.id,name:String(t.name),lat:p.lat,lon:p.lon,distance:d,address:[t["addr:street"],t["addr:housenumber"]].filter(Boolean).join(" "),category:APP.filters.category==="all"?(cuisine||"餐饮"):APP.filters.category};
+    return {id:x.type+"-"+x.id,name:String(t.name),lat:p.lat,lng:p.lon,distance:d,address:[t["addr:street"],t["addr:housenumber"]].filter(Boolean).join(" "),category:APP.filters.category==="all"?(t.cuisine||"餐饮"):APP.filters.category,source:"nearby"};
    }).filter(Boolean).sort((a,b)=>a.distance-b.distance);
-   const seen=new Set(),out=[];
-   for(const x of list){const k=x.name.toLowerCase();if(seen.has(k))continue;seen.add(k);out.push(x);if(out.length>=50)break}
-   return out;
+   const seen=new Set(),out=[];for(const x of list){const k=x.name.toLowerCase();if(seen.has(k))continue;seen.add(k);out.push(x);if(out.length>=50)break}return out;
   }catch(e){last=e.name==="AbortError"?"数据源响应超时":"数据源连接失败"}finally{clearTimeout(timer)}
  }
  throw new Error(last||"附近真实商家数据暂时不可用");
 }
+async function fetchDelivery(){
+ if(!APP.location)throw new Error("请先获取当前位置");
+ const p=APP.filters.platform,budget=APP.filters.budget,category=APP.filters.category,people=APP.filters.people;
+ if(p==="taobao"){
+  const u=WORKER+"/delivery?platform=taobao&lat="+encodeURIComponent(APP.location.lat)+"&lng="+encodeURIComponent(APP.location.lng)+"&budget="+encodeURIComponent(budget==="all"?"0":budget)+"&category="+encodeURIComponent(category)+"&people="+encodeURIComponent(people);
+  const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),10000);
+  try{
+   const r=await fetch(u,{signal:ctl.signal,cache:"no-store",headers:{Accept:"application/json"}});
+   const d=await r.json().catch(()=>({}));
+   if(!r.ok||!d.ok) throw new Error(d.error||"淘宝闪购接口暂未连通");
+   if(!Array.isArray(d.results)||!d.results.length) throw new Error("淘宝闪购当前没有返回符合条件的真实外卖结果");
+   return d.results;
+  }catch(e){throw new Error(e.name==="AbortError"?"淘宝闪购接口响应超时":(e.message||"淘宝闪购接口暂不可用"))}finally{clearTimeout(timer)}
+ }
+ if(p==="meituan") throw new Error("美团实时外卖需要美团开放平台合作接口；当前代码没有伪造美团数据。");
+ return null;
+}
 function showResult(x){
- APP.current=x;$("foodName").textContent=x.name;$("addr").textContent=x.address||"地址以地图数据为准";$("distance").textContent=x.distance<1000?x.distance+"m":(x.distance/1000).toFixed(1)+"km";$("price").textContent="到平台查看";$("kind").textContent=x.category||"餐饮";$("goMap").onclick=()=>window.open("https://www.openstreetmap.org/?mlat="+x.lat+"&mlon="+x.lon+"#map=18/"+x.lat+"/"+x.lon,"_blank");$("goPlatform").onclick=()=>{showMessage("当前没有美团/淘宝闪购官方实时商品接口，已避免使用假链接或假价格。");};$("result").classList.add("show");saveHistory(x);$("result").scrollIntoView({behavior:"smooth",block:"start"})}
+ APP.current=x;
+ $("foodName").textContent=x.name||"—";
+ $("addr").textContent=x.address||"地址以平台/地图为准";
+ $("distance").textContent=Number(x.distance)<1000?(Number(x.distance)||0)+"m":((Number(x.distance)||0)/1000).toFixed(1)+"km";
+ $("price").textContent=Number(x.price)>0?"¥"+Number(x.price).toFixed(2):"到平台查看";
+ $("kind").textContent=x.category||"餐饮";
+ $("sourceTag").textContent=x.source==="taobao"?"淘宝闪购真实结果":x.source==="meituan"?"美团真实结果":"真实附近商家";
+ $("goMap").onclick=()=>window.open("https://www.openstreetmap.org/?mlat="+encodeURIComponent(x.lat)+"&mlon="+encodeURIComponent(x.lng||x.lon)+"#map=18/"+encodeURIComponent(x.lat)+"/"+encodeURIComponent(x.lng||x.lon),"_blank");
+ $("goPlatform").onclick=()=>{
+  if(x.url){window.open(x.url,"_blank");return}
+  if(APP.filters.platform==="taobao"){showMessage("该结果来自附近真实商家，但淘宝闪购推广链接未随结果返回。")}
+  else{window.open("https://waimai.meituan.com/","_blank");showMessage("已打开美团外卖官方入口；当前未取得美团商家实时接口数据。")}
+ };
+ $("result").classList.add("show");saveHistory({id:x.id,name:x.name,distance:Number(x.distance)||0});$("result").scrollIntoView({behavior:"smooth",block:"start"});
+}
 async function draw(){
  if(APP.busy)return;
  if(!APP.location){showMessage("请先点击「获取当前位置」。");return}
- APP.busy=true;$("draw").disabled=true;$("draw").textContent="🎲 正在寻找真实商家…";$("result").classList.remove("show");hideMessage();setStatus("查询真实商家");
+ APP.busy=true;$("draw").disabled=true;$("draw").textContent="🎲 正在抽取…";$("result").classList.remove("show");hideMessage();setStatus("正在查询");
  try{
-  const list=await fetchNearby();
-  if(!list.length)throw new Error("当前位置附近没有匹配的真实餐饮商家。可以扩大搜索范围或换一个类别。");
-  showResult(list[Math.floor(Math.random()*list.length)]);setStatus("抽取完成");
- }catch(e){showMessage(e.message||"真实商家源暂时不可用");setStatus("数据源异常")}
+  let list=await fetchDelivery();
+  if(!list){
+   list=await fetchNearby();
+  }
+  if(!list.length)throw new Error("没有找到符合条件的真实结果。");
+  const x=list[Math.floor(Math.random()*list.length)];
+  showResult(x);
+  setStatus(x.source==="taobao"?"闪购抽取完成":"附近商家抽取完成");
+ }catch(e){showMessage(e.message||"抽取失败");setStatus("抽取失败")}
  finally{APP.busy=false;$("draw").disabled=false;$("draw").textContent="🎲 开始抽外卖"}
 }
 async function aiDecide(){
  if(!APP.current){showMessage("先抽出一家真实商家，再让 AI 帮你决定。");return}
  $("aiBtn").disabled=true;$("aiText").textContent="正在生成建议…";
  try{
-  const text="我抽到了「"+APP.current.name+"」，类别是"+(APP.current.category||"餐饮")+"，距离约"+APP.current.distance+"米。请用一句自然中文告诉我为什么现在可以吃它。";
-  const r=await fetch("https://api.openai.com/v1/responses",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({model:"gpt-5.6-mini",input:text})});
-  if(!r.ok)throw new Error("AI接口未配置");
-  const j=await r.json(),out=j.output?.flatMap(v=>v.content||[]).map(v=>v.text).filter(Boolean).join("")||"今天就吃它，别纠结了。";$("aiText").textContent=out;
- }catch(_){$("aiText").textContent="AI服务暂时不可用，但不影响真实商家抽取。"}
+  const r=await fetch(WORKER+"/food",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({mode:"food",name:APP.current.name,category:APP.current.category||"餐饮",budget:APP.filters.budget,people:APP.filters.people})});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok||!j.ok)throw new Error(j.error||"AI服务暂不可用");
+  $("aiText").textContent=j.desc||j.taste||"今天就吃它，别纠结了。";
+ }catch(_){$("aiText").textContent="AI服务暂时不可用，但不影响外卖抽取。"}
  finally{$("aiBtn").disabled=false}
 }
 $("locateBtn").onclick=getLocation;$("draw").onclick=draw;$("again").onclick=draw;$("aiBtn").onclick=aiDecide;
