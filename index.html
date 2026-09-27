@@ -104,37 +104,42 @@
 <script>
 const WORKER="https://restless-field-1986.lx230632239.workers.dev";
 const state={platform:"all",budget:"all",category:"all",current:null,history:JSON.parse(localStorage.getItem("delivery_history_v1")||"[]")};
-const demo=[
- {source:"taobao",name:"招牌牛肉面套餐",shop:"附近牛肉面馆",price:19.9,rating:4.8,distance:"1.2km",delivery:"约25分钟",sales:"2000+",category:"正餐",emoji:"🍜",url:""},
- {source:"taobao",name:"香辣鸡腿堡套餐",shop:"汉堡小馆",price:28.9,rating:4.7,distance:"1.8km",delivery:"约30分钟",sales:"3000+",category:"正餐",emoji:"🍔",url:""},
- {source:"meituan",name:"招牌烤串拼盘",shop:"深夜烧烤店",price:39.9,rating:4.6,distance:"2.1km",delivery:"约35分钟",sales:"1800+",category:"烧烤",emoji:"🍢",url:""},
- {source:"meituan",name:"麻辣小龙虾",shop:"江城小龙虾",price:58,rating:4.7,distance:"2.6km",delivery:"约40分钟",sales:"900+",category:"正餐",emoji:"🦞",url:""},
- {source:"taobao",name:"草莓奶茶",shop:"茶饮研究所",price:16.8,rating:4.9,distance:"0.9km",delivery:"约20分钟",sales:"5000+",category:"奶茶",emoji:"🧋",url:""},
- {source:"meituan",name:"芒果千层",shop:"甜甜屋",price:22,rating:4.8,distance:"1.5km",delivery:"约25分钟",sales:"1200+",category:"甜品",emoji:"🍰",url:""},
- {source:"taobao",name:"重庆火锅双人餐",shop:"重庆老火锅",price:88,rating:4.8,distance:"3.2km",delivery:"约45分钟",sales:"700+",category:"火锅",emoji:"🍲",url:""},
- {source:"meituan",name:"生煎包套餐",shop:"上海生煎铺",price:18.8,rating:4.7,distance:"1.1km",delivery:"约25分钟",sales:"2600+",category:"小吃",emoji:"🥟",url:""}
-];
 function $(id){return document.getElementById(id)}
 function bindChips(id,key){document.querySelectorAll("#"+id+" .chip").forEach(b=>b.onclick=()=>{document.querySelectorAll("#"+id+" .chip").forEach(x=>x.classList.remove("active"));b.classList.add("active");state[key]=b.dataset.v})}
 bindChips("platform","platform");bindChips("budget","budget");bindChips("category","category");
-function candidates(){
- return demo.filter(x=>(state.platform==="all"||x.source===state.platform)&&(state.category==="all"||x.category===state.category)&&(state.budget==="all"||x.price<=Number(state.budget)));
+async function fetchLive(){
+ const p=state.platform==="meituan"?"meituan":"taobao";
+ const qs=new URLSearchParams({platform:p,budget:state.budget==="all"?"":state.budget,category:state.category==="all"?"":state.category});
+ const r=await fetch(WORKER+"/delivery?"+qs.toString(),{cache:"no-store"});
+ const j=await r.json();
+ if(!r.ok||!j.ok) throw new Error(j.error||"外卖源暂不可用");
+ return Array.isArray(j.results)?j.results:[];
 }
 function saveHistory(x){state.history=[x,...state.history.filter(y=>y.name!==x.name)].slice(0,8);localStorage.setItem("delivery_history_v1",JSON.stringify(state.history));renderHistory()}
 function renderHistory(){$("history").innerHTML=state.history.length?state.history.map(x=>"<div>"+x.emoji+" <b>"+x.name+"</b> · "+x.shop+" · ¥"+x.price+"</div>").join(""):'<div class="empty">还没有抽取记录</div>'}
 function showResult(x){
- state.current=x;$("cover").textContent=x.emoji;$("sourceTag").textContent=x.source==="taobao"?"淘宝闪购盲盒":"美团盲盒";
+ state.current=x;$("cover").textContent=x.emoji||"🍱";$("sourceTag").textContent=x.source==="taobao"?"淘宝闪购盲盒":"美团盲盒";
  $("foodName").textContent=x.name;$("shopName").textContent=x.shop;$("price").textContent="¥"+x.price;$("rating").textContent=x.rating;
  $("distance").textContent=x.distance;$("delivery").textContent=x.delivery;$("sales").textContent=x.sales;$("categoryOut").textContent=x.category;
- $("goMeituan").classList.toggle("hidden",x.source==="taobao");$("goTaobao").classList.toggle("hidden",x.source==="meituan");
+ $("goMeituan").classList.add("hidden");$("goTaobao").classList.toggle("hidden",!x.url);
  $("result").classList.add("show");$("result").scrollIntoView({behavior:"smooth",block:"start"});saveHistory(x);
 }
 async function draw(){
- const a=candidates();if(!a.length){alert("当前条件没有可抽取的外卖");return}
  $("draw").disabled=true;$("draw").classList.add("loading");$("stage").classList.add("show");$("result").classList.remove("show");
- const steps=["正在寻找附近外卖……","正在筛选预算和品类……","正在随机商家……","盲盒马上揭晓……"];
- for(const t of steps){$("stageTitle").textContent=t;await new Promise(r=>setTimeout(r,420))}
- const x=a[Math.floor(Math.random()*a.length)];showResult(x);$("stage").classList.remove("show");$("draw").disabled=false;$("draw").classList.remove("loading");
+ try{
+  $("stageTitle").textContent="正在连接外卖源……";await new Promise(r=>setTimeout(r,260));
+  const list=await fetchLive();
+  if(!list.length) throw new Error(state.platform==="meituan"?"美团官方实时接口尚未接入":"当前条件没有可抽取的实时外卖");
+  $("stageTitle").textContent="正在随机盲盒……";await new Promise(r=>setTimeout(r,700));
+  const x=list[Math.floor(Math.random()*list.length)];
+  showResult({...x,emoji:"🍱",rating:"—",distance:"—",delivery:"实时数据",category:x.category||"正餐"});
+  $("status").textContent="淘宝闪购实时";
+ }catch(e){
+  $("status").textContent="外卖源暂不可用";
+  alert(e.message||"外卖源暂时不可用，请稍后再试");
+ }finally{
+  $("stage").classList.remove("show");$("draw").disabled=false;$("draw").classList.remove("loading");
+ }
 }
 function openProvider(type){
  const x=state.current;if(!x)return;
@@ -146,7 +151,7 @@ $("aiBtn").onclick=async()=>{
  const x=state.current;if(!x)return;
  $("aiText").textContent="AI 正在帮你判断……";$("aiBtn").disabled=true;
  try{
-  const r=await fetch(WORKER+"/food",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({mode:"decide",foods:[{n:x.name,cat:x.category,price:"¥"+x.price,region:x.shop}],context:"这是外卖盲盒抽中的真实商品，请给出简短、自然、不过度营销的选择理由"})});
+  const r=await fetch(WORKER+"/food",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({mode:"decide",candidates:[{n:x.name,cat:x.category,region:x.shop}],requestText:"这是外卖盲盒抽中的真实商品，请给出简短、自然、不过度营销的选择理由"})});
   const j=await r.json();$("aiText").textContent=j.reason||"今天就吃它，别纠结了。";
  }catch(e){$("aiText").textContent="今天就吃它，别纠结了。"}finally{$("aiBtn").disabled=false}
 };
