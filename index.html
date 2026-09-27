@@ -121,7 +121,15 @@ async function loadLocation(){
  $("locationText").textContent="暂时无法获取所在城市";
  return null;
 }
-async function checkDeliverySource(){\n try{\n  const r=await fetch(WORKER+"/delivery?platform=taobao&city_code="+encodeURIComponent((state.location&&state.location.taobaoCityCode)||""),{cache:"no-store"});\n  const j=await r.json();\n  if(r.ok&&j.ok&&j.live){$("status").textContent="淘宝闪购已连接";return true;}\n  $("status").textContent=j.error||"外卖源暂不可用";return false;\n }catch(e){$("status").textContent="外卖源暂不可用";return false;}\n}\nasync function fetchLive(){
+async function checkDeliverySource(){
+ try{
+  const r=await fetch(WORKER+"/delivery?platform=taobao&city_code="+encodeURIComponent((state.location&&state.location.taobaoCityCode)||""),{cache:"no-store"});
+  const j=await r.json();
+  if(r.ok&&j.ok&&j.live){$("status").textContent="淘宝闪购已连接";return true;}
+  $("status").textContent=j.error||"外卖源暂不可用";return false;
+ }catch(e){$("status").textContent="外卖源暂不可用";return false;}
+}
+async function fetchLive(){
  const p=state.platform==="meituan"?"meituan":"taobao";
  const qs=new URLSearchParams({platform:p,city_code:(state.location&&state.location.taobaoCityCode)||"",budget:state.budget==="all"?"":state.budget,category:state.category==="all"?"":state.category,people:state.people==="all"?"":state.people});
  const r=await fetch(WORKER+"/delivery?"+qs.toString(),{cache:"no-store"});
@@ -164,7 +172,8 @@ $("aiBtn").onclick=async()=>{
   const j=await r.json();$("aiText").textContent=j.reason||"今天就吃它，别纠结了。";
  }catch(e){$("aiText").textContent="今天就吃它，别纠结了。"}finally{$("aiBtn").disabled=false}
 };
-renderHistory();\nloadLocation().then(()=>checkDeliverySource());
+renderHistory();
+loadLocation().then(()=>checkDeliverySource());
 </script>
 </body>
 </html>
