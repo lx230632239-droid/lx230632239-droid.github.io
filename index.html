@@ -16,7 +16,7 @@
     <div class="status" id="status">正在检测外卖源…</div>
   </div>
 
-  <section class="card" style="margin-bottom:14px"><div class="label">📍 所在位置</div><div id="locationText" class="notice">正在获取所在城市…</div></section>\n\n  <section class="hero">
+  <section class="card" style="margin-bottom:14px"><div class="label">📍 所在位置</div><div id="locationText" class="notice">正在获取所在城市…</div></section>\n\n  <section class="card" style="margin-bottom:14px"><div class="label">📍 所在位置</div><div style="display:flex;gap:8px"><button class="chip active" id="locBtn" style="flex:1">自动获取当前位置</button><div id="locText" style="flex:2;padding:9px 12px;border:1px solid #e5dcd6;border-radius:999px;color:#8f8179;font-size:12px">抽外卖前会自动定位</div></div></section>\n\n  <section class="hero">
     <div style="font-size:42px">🎁</div>
     <h1>今天吃什么？</h1>
     <p>不用纠结，让盲盒替你决定。</p>
@@ -121,19 +121,30 @@ async function loadLocation(){
  $("locationText").textContent="暂时无法获取所在城市";
  return null;
 }
-async function checkDeliverySource(){\n try{\n  const r=await fetch(WORKER+"/delivery?platform=taobao&city_code="+encodeURIComponent((state.location&&state.location.taobaoCityCode)||""),{cache:"no-store"});\n  const j=await r.json();\n  if(r.ok&&j.ok&&j.live){$("status").textContent="淘宝闪购已连接";return true;}\n  $("status").textContent=j.error||"外卖源暂不可用";return false;\n }catch(e){$("status").textContent="外卖源暂不可用";return false;}\n}\nasync function fetchLive(){
+async function getLocation(){
+ if(state.locationReady)return true;
+ if(!navigator.geolocation) throw new Error("当前浏览器不支持定位，请换手机浏览器打开");
+ $("locText").textContent="正在获取当前位置…";
+ return await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(pos=>{
+  state.latitude=pos.coords.latitude;state.longitude=pos.coords.longitude;state.locationReady=true;$("locText").textContent="已获取当前位置";$("status").textContent="位置已获取";resolve(true);
+ },()=>{ $("locText").textContent="定位失败，请允许浏览器定位权限";reject(new Error("需要允许“所在位置”权限，才能匹配附近真实外卖"));},{enableHighAccuracy:true,timeout:10000,maximumAge:300000}));
+}
+async function checkDeliverySource(){ $("status").textContent="等待定位"; return true; }
+async function fetchLive(){
  const p=state.platform==="meituan"?"meituan":"taobao";
- const qs=new URLSearchParams({platform:p,city_code:(state.location&&state.location.taobaoCityCode)||"",budget:state.budget==="all"?"":state.budget,category:state.category==="all"?"":state.category,people:state.people==="all"?"":state.people});
- const r=await fetch(WORKER+"/delivery?"+qs.toString(),{cache:"no-store"});
- const j=await r.json();
+ await getLocation();
+ if(p==="meituan") throw new Error("美团官方实时接口暂未配置，目前使用淘宝闪购真实附近门店源");
+ const qs=new URLSearchParams({platform:p,budget:state.budget==="all"?"":state.budget,category:state.category==="all"?"":state.category,people:state.people==="all"?"":state.people,latitude:String(state.latitude),longitude:String(state.longitude)});
+ const r=await fetch(WORKER+"/delivery?"+qs.toString(),{cache:"no-store"}); const j=await r.json();
  if(!r.ok||!j.ok) throw new Error(j.error||"外卖源暂不可用");
  return Array.isArray(j.results)?j.results:[];
 }
+$("locBtn").onclick=()=>getLocation().catch(e=>alert(e.message));
 function saveHistory(x){state.history=[x,...state.history.filter(y=>y.name!==x.name)].slice(0,8);localStorage.setItem("delivery_history_v1",JSON.stringify(state.history));renderHistory()}
 function renderHistory(){$("history").innerHTML=state.history.length?state.history.map(x=>"<div>"+x.emoji+" <b>"+x.name+"</b> · "+x.shop+" · ¥"+x.price+"</div>").join(""):'<div class="empty">还没有抽取记录</div>'}
 function showResult(x){
  state.current=x;$("cover").innerHTML=x.image?`<img src="${x.image}" alt="">`:(x.emoji||"🍱");$("sourceTag").textContent=x.source==="taobao"?"淘宝闪购实时":"外卖盲盒";
- $("foodName").textContent=x.name;$("shopName").textContent=x.shops?"适用 "+x.shops+" 家门店":"淘宝闪购餐饮商品";$("price").textContent="¥"+x.price;$("originalPrice").textContent=x.originalPrice?"¥"+x.originalPrice:"—";$("discount").textContent=x.discount?x.discount+"折":"—";$("shops").textContent=x.shops||"—";$("sales").textContent=x.sales||"—";$("stock").textContent=x.stock||"—";
+ $("foodName").textContent=x.name;$("shopName").textContent=x.shop||"淘宝闪购餐饮门店";$("price").textContent="¥"+x.price;$("originalPrice").textContent=x.originalPrice?"¥"+x.originalPrice:"—";$("discount").textContent=x.discount?x.discount+"折":"—";$("shops").textContent=x.distance?(x.distance/1000).toFixed(1)+"km":"—";$("sales").textContent=x.deliveryTime?(x.deliveryTime+"分钟"):"—";$("stock").textContent=x.rating||"—";
  $("goMeituan").classList.add("hidden");$("goTaobao").classList.toggle("hidden",!x.url);
  $("result").classList.add("show");$("result").scrollIntoView({behavior:"smooth",block:"start"});saveHistory(x);
 }
@@ -146,7 +157,7 @@ async function draw(){
   $("stageTitle").textContent="正在随机盲盒……";await new Promise(r=>setTimeout(r,700));
   const x=list[Math.floor(Math.random()*list.length)];
   showResult({...x,emoji:"🍱",category:x.category||"正餐"});
-  $("status").textContent="淘宝闪购实时";
+  $("status").textContent="淘宝闪购附近实时";
  }catch(e){
   $("status").textContent="外卖源暂不可用";
   alert(e.message||"外卖源暂时不可用，请稍后再试");
