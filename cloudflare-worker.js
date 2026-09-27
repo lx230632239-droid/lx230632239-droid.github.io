@@ -83,7 +83,7 @@ function cleanItem(x){
     category:"正餐", url:link
   };
 }
-\nfunction extractText(data) {
+function extractText(data) {
   if (typeof data.output_text === "string") return data.output_text;
   const parts = [];
   for (const item of data.output || []) {
