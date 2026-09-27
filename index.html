@@ -149,25 +149,62 @@ function buildQuery(){
  return '[out:json][timeout:12];(nwr(around:5000,'+lat+','+lng+')[amenity=restaurant]'+cf+';nwr(around:5000,'+lat+','+lng+')[amenity=fast_food]'+cf+';);out center tags;';
 }
 async function fetchNearby(){
- const q=buildQuery(),urls=[WORKER+"/nearby?lat="+encodeURIComponent(APP.location.lat)+"&lng="+encodeURIComponent(APP.location.lng)+"&radius=5000&category="+encodeURIComponent(APP.filters.category), "https://overpass-api.de/api/interpreter?data="+encodeURIComponent(q), "https://overpass.kumi.systems/api/interpreter?data="+encodeURIComponent(q)];
+ const lat=APP.location.lat,lng=APP.location.lng,cat=APP.filters.category;
+ const q=buildQuery();
+ const overpassUrls=[
+  "https://overpass-api.de/api/interpreter?data="+encodeURIComponent(q),
+  "https://overpass.kumi.systems/api/interpreter?data="+encodeURIComponent(q)
+ ];
  let last="";
- for(const url of urls){
+ // 1) Worker：以后可作为最快的聚合入口
+ try{
+  const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),7000);
+  const r=await fetch(WORKER+"/nearby?lat="+encodeURIComponent(lat)+"&lng="+encodeURIComponent(lng)+"&radius=5000&category="+encodeURIComponent(cat),{signal:ctl.signal,cache:"no-store"});
+  clearTimeout(timer);
+  if(r.ok){
+   const data=await r.json();
+   if(Array.isArray(data.results)&&data.results.length)return data.results;
+  }
+ }catch(e){last="聚合源暂时不可用"}
+ // 2) Overpass：真实 OSM 餐饮点，逐个容错
+ for(const url of overpassUrls){
   const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),9000);
   try{
    const r=await fetch(url,{signal:ctl.signal,cache:"no-store",headers:{Accept:"application/json"}});
-   if(!r.ok){last="数据源 HTTP "+r.status;continue}
+   if(!r.ok){last="地图源 HTTP "+r.status;continue}
    const data=await r.json();
-   if(data&&Array.isArray(data.results)) return data.results.map(x=>({id:x.id,name:x.name,lat:x.lat,lng:x.lng??x.lon,distance:Number(x.distance)||0,address:x.address||"",category:x.category||"餐饮",source:x.source||"nearby",price:x.price}));
    const list=(data.elements||[]).map(x=>{
     const t=x.tags||{},p=x.type==="node"?{lat:x.lat,lon:x.lon}:{lat:x.center?.lat,lon:x.center?.lon};
     if(!t.name||p.lat==null||p.lon==null)return null;
-    const d=Math.round(distance(APP.location.lat,APP.location.lng,p.lat,p.lon));
-    return {id:x.type+"-"+x.id,name:String(t.name),lat:p.lat,lng:p.lon,distance:d,address:[t["addr:street"],t["addr:housenumber"]].filter(Boolean).join(" "),category:APP.filters.category==="all"?(t.cuisine||"餐饮"):APP.filters.category,source:"nearby"};
+    return {
+     id:x.type+"-"+x.id,name:String(t.name),lat:p.lat,lng:p.lon,
+     distance:Math.round(distance(lat,lng,p.lat,p.lon)),
+     address:[t["addr:street"],t["addr:housenumber"]].filter(Boolean).join(" "),
+     category:cat==="all"?(t.cuisine||"餐饮"):cat,source:"nearby"
+    };
    }).filter(Boolean).sort((a,b)=>a.distance-b.distance);
-   const seen=new Set(),out=[];for(const x of list){const k=x.name.toLowerCase();if(seen.has(k))continue;seen.add(k);out.push(x);if(out.length>=50)break}return out;
-  }catch(e){last=e.name==="AbortError"?"数据源响应超时":"数据源连接失败"}finally{clearTimeout(timer)}
+   const seen=new Set(),out=[];
+   for(const x of list){const k=x.name.trim().toLowerCase();if(!k||seen.has(k))continue;seen.add(k);out.push(x);if(out.length>=80)break}
+   if(out.length)return out;
+  }catch(e){last=e.name==="AbortError"?"地图源响应超时":"地图源连接失败"}finally{clearTimeout(timer)}
  }
- throw new Error(last||"附近真实商家数据暂时不可用");
+ // 3) Nominatim 搜索：作为 OSM 的第二种真实检索方式，避免 Overpass 空结果
+ const terms=cat==="all"?["restaurant","food","cafe","fast food"]:({正餐:"restaurant",小吃:"fast food",烧烤:"barbecue",火锅:"hot pot",奶茶:"bubble tea",甜品:"dessert"}[cat]||"restaurant");
+ const termList=Array.isArray(terms)?terms:[terms];
+ for(const term of termList){
+  try{
+   const u="https://nominatim.openstreetmap.org/search?format=jsonv2&limit=40&addressdetails=1&dedupe=1&accept-language=zh-CN&q="+encodeURIComponent(term)+"&viewbox="+encodeURIComponent((lng-0.06)+","+ (lat+0.06)+","+ (lng+0.06)+","+ (lat-0.06))+"&bounded=1";
+   const r=await fetch(u,{cache:"no-store",headers:{Accept:"application/json"}});
+   if(!r.ok)continue;
+   const data=await r.json();
+   const list=data.map(x=>{
+    const la=Number(x.lat),lo=Number(x.lon);if(!x.display_name||!Number.isFinite(la)||!Number.isFinite(lo))return null;
+    return {id:"nom-"+x.place_id,name:x.name||x.display_name.split(",")[0],lat:la,lng:lo,distance:Math.round(distance(lat,lng,la,lo)),address:x.display_name,category:cat==="all"?"餐饮":cat,source:"nearby"};
+   }).filter(Boolean).sort((a,b)=>a.distance-b.distance);
+   if(list.length)return list;
+  }catch(_){}
+ }
+ throw new Error(last||"附近暂时没有检索到真实商家，请扩大范围或换一个类别。");
 }
 async function fetchDelivery(){
  if(!APP.location)throw new Error("请先获取当前位置");
