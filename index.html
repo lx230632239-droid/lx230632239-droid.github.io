@@ -105,6 +105,8 @@ button,input,select{font:inherit}.app{max-width:760px;margin:auto;padding:10px 1
   <label class="musicUpload">📁 播放手机本地音乐<input id="musicFile" type="file" accept="audio/*"></label>
   <div class="musicHint">在线歌曲使用公开试听片段；完整歌曲可打开官方音乐页面。</div>
   <audio id="musicAudio" preload="none"></audio>
+</div><label class="musicUpload">📁 添加手机音乐<input id="musicFile" type="file" accept="audio/*"></label>
+  <div class="musicHint">右上角圆圈只负责展开/收起，不再占页面空间。你也可以直接选手机里的音乐。</div>
 </div>
 
 <script>
@@ -125,20 +127,16 @@ async function aiFood(f){
     if(data.desc)$("resultDesc").textContent=data.desc;
     if(data.recommend)$("recommend").textContent=data.recommend+"/5";
     if(data.tasteScore)$("taste").textContent=data.tasteScore+"/5";
-    if(Array.isArray(data.sources)&&data.sources.length){
-      const links=data.sources.map(s=>"<a href='"+esc(s.url)+"' target='_blank' rel='noopener noreferrer'>"+esc(s.title||"联网来源")+"</a>").join(" · ");
-      $("resultRegion").innerHTML+="<br>🌐 <b>联网来源：</b>"+links;
-    }
     const tag=$("resultCat"); if(tag&&!tag.textContent.includes("AI"))tag.textContent+=" · AI";
-    if(state){state.textContent=data.sources?.length?"🌐 AI 已联网检索并分析":"🤖 AI 已完成分析";state.style.opacity="1"}
+    if(state){state.textContent="AI 美食资料已生成";state.style.opacity="1"}
   }catch(e){
-    if(state){state.textContent="⚠️ AI 暂时不可用，已保留本地资料";state.style.opacity="1"}
+    if(state){state.textContent="已使用本地美食资料";state.style.opacity="1"}
     console.warn("AI food:",e);
   }
 }
 
 const FOOD_DATA=[["螺蛳粉","主食","🍜","广西柳州"],["兰州牛肉面","主食","🍜","甘肃兰州"],["重庆小面","主食","🍜","重庆"],["热干面","主食","🍜","湖北武汉"],["炸酱面","主食","🍜","北京"],["担担面","主食","🍜","四川"],["蛋炒饭","主食","🍚","全国"],["扬州炒饭","主食","🍚","江苏扬州"],["卤肉饭","主食","🍚","台湾"],["煲仔饭","主食","🍚","广东"],["宫保鸡丁","正餐","🍗","四川"],["鱼香肉丝","正餐","🥩","四川"],["麻婆豆腐","正餐","🌶️","四川"],["回锅肉","正餐","🥩","四川"],["红烧肉","正餐","🥩","全国"],["糖醋排骨","正餐","🍖","江南"],["酸菜鱼","正餐","🐟","重庆"],["北京烤鸭","正餐","🦆","北京"],["红烧狮子头","正餐","🍽️","中国各地"],["松鼠桂鱼","正餐","🍽️","中国各地"],["肉夹馍","小吃","🥙","陕西西安"],["生煎包","小吃","🥟","上海"],["小笼包","小吃","🥟","江南"],["锅贴","小吃","🥟","全国"],["肠粉","小吃","🥟","广东"],["鸡蛋灌饼","小吃","🥞","全国"],["手抓饼","小吃","🥞","全国"],["臭豆腐","小吃","🧈","湖南长沙"],["狼牙土豆","小吃","🥔","四川"],["关东煮","小吃","🍢","日本"],["提拉米苏","甜品","🍰","意大利"],["草莓蛋糕","甜品","🍓","全国"],["芒果千层","甜品","🥭","全国"],["抹茶蛋糕","甜品","🍵","日本"],["巧克力熔岩蛋糕","甜品","🍫","法国"],["泡芙","甜品","🥐","法国"],["蛋挞","甜品","🥧","广东"],["双皮奶","甜品","🥛","广东顺德"],["杨枝甘露","甜品","🥭","广东"],["芋圆","甜品","🍧","台湾"],["黑糖珍珠奶茶","奶茶","🧋","台湾"],["芝士奶茶","奶茶","🧋","全国"],["芋泥奶茶","奶茶","🧋","全国"],["抹茶奶茶","奶茶","🧋","日本"],["椰香奶茶","奶茶","🧋","全国"],["茉莉奶绿","奶茶","🧋","全国"],["乌龙奶茶","奶茶","🧋","全国"],["蜜桃乌龙奶茶","奶茶","🧋","全国"],["草莓奶茶","奶茶","🧋","全国"],["红茶拿铁","奶茶","🧋","全国"],["鲜榨橙汁","饮品","🍊","全国"],["西瓜汁","饮品","🍉","全国"],["百香果茶","饮品","🥭","全国"],["蜜桃气泡水","饮品","🍑","全国"],["青提气泡水","饮品","🍇","全国"],["蜂蜜柚子茶","饮品","🍯","韩国"],["酸梅汤","饮品","🥤","中国"],["桂花乌龙茶","饮品","🍵","中国"],["柠檬红茶","饮品","🍋","中国"],["椰青冰饮","饮品","🥥","海南"],["烤羊肉串","烧烤","🍢","新疆"],["烤牛肉串","烧烤","🍢","全国"],["烤五花肉","烧烤","🥩","全国"],["烤鸡翅","烧烤","🍗","全国"],["烤排骨","烧烤","🍖","全国"],["烤茄子","烧烤","🍆","全国"],["烤玉米","烧烤","🌽","全国"],["烤鱿鱼","烧烤","🦑","沿海地区"],["烤扇贝","烧烤","🐚","沿海地区"],["烤全羊","烧烤","🐑","内蒙古"],["重庆火锅","火锅","🍲","重庆"],["潮汕牛肉火锅","火锅","🥩","广东潮汕"],["番茄火锅","火锅","🍅","全国"],["菌汤火锅","火锅","🍄","云南"],["酸菜火锅","火锅","🥬","东北"],["羊蝎子火锅","火锅","🥩","北京"],["老北京铜锅涮肉","火锅","🥩","北京"],["椰子鸡火锅","火锅","🥥","海南"],["鱼头火锅","火锅","🐟","湖南"],["海鲜火锅","火锅","🦐","沿海地区"],["小龙虾","海鲜","🦞","湖北潜江"],["蒜蓉生蚝","海鲜","🦪","沿海地区"],["椒盐皮皮虾","海鲜","🦐","沿海地区"],["清蒸大闸蟹","海鲜","🦀","江苏"],["白灼虾","海鲜","🦐","广东"],["烤扇贝","海鲜","🐚","沿海地区"],["海鲜粥","海鲜","🥣","广东"],["花甲粉","海鲜","🍜","沿海地区"],["蒜蓉龙虾","海鲜","🦐","沿海风味"],["芝士焗龙虾","海鲜","🦐","沿海风味"],["豆浆油条","早餐","🥛","全国"],["小米粥","早餐","🥣","全国"],["煎饼果子","早餐","🥞","天津"],["胡辣汤","早餐","🥣","河南"],["肠粉早餐","早餐","🥟","广东"],["烧麦","早餐","🥟","全国"],["包子","早餐","🥟","全国"],["饭团","早餐","🍙","日本"],["鸡蛋灌饼加脆","早餐","🥞","早餐风味"],["火腿鸡蛋饼","早餐","🥞","早餐风味"],["麻辣小龙虾","夜宵","🦞","湖北"],["炸串","夜宵","🍢","全国"],["烤冷面","夜宵","🍜","东北"],["炒粉","夜宵","🍜","全国"],["砂锅粥","夜宵","🥣","广东"],["大排档海鲜","夜宵","🦐","沿海地区"],["串串香","夜宵","🍢","四川"],["鸭脖","夜宵","🍗","湖北"],["麻辣烫","夜宵","🍢","夜宵风味"],["冒菜夜宵","夜宵","🍢","夜宵风味"],["西红柿炒鸡蛋","家常菜","🍅","全国"],["可乐鸡翅","家常菜","🍗","全国"],["番茄牛腩","家常菜","🥩","全国"],["土豆炖牛肉","家常菜","🥔","全国"],["地三鲜","家常菜","🥔","东北"],["小鸡炖蘑菇","家常菜","🍗","东北"],["鱼香茄子","家常菜","🍆","四川"],["蒜蓉粉丝虾","家常菜","🦐","全国"],["青椒炒肉","家常菜","🥘","家常风味"],["小炒黄牛肉","家常菜","🥘","家常风味"]];
-const APP_VERSION="FINAL-20260927-V6-AUDITED";
+const APP_VERSION="FINAL-20260927-V4";
 const SYSTEM_CATS=["主食","正餐","小吃","甜品","奶茶","饮品","烧烤","火锅","海鲜","早餐","夜宵","家常菜"];
 const $=id=>document.getElementById(id);
 const safe=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k)||"null");return v==null?d:v}catch(e){return d}};
@@ -148,32 +146,25 @@ const baseFoods=FOOD_DATA.map((x,i)=>({id:"s"+i,n:x[0],cat:x[1],e:x[2],region:x[
 
 // v6：彻底清掉旧版系统菜单的历史污染，固定为120道基础菜；用户自定义菜单和收藏/记录继续保留。
 let systemFoods=safe("food_system_v6",null);
-if(!Array.isArray(systemFoods)){systemFoods=baseFoods.map(x=>({...x}));save("food_system_v6",systemFoods)}
+if(!Array.isArray(systemFoods)||systemFoods.length!==baseFoods.length){systemFoods=baseFoods.map(x=>({...x}));save("food_system_v6",systemFoods)}
 let systemCats=safe("food_system_cats_v6",null);
-if(!Array.isArray(systemCats)||!systemCats.length){systemCats=SYSTEM_CATS.slice();save("food_system_cats_v6",systemCats)}
+if(!Array.isArray(systemCats)||systemCats.length!==SYSTEM_CATS.length){systemCats=SYSTEM_CATS.slice();save("food_system_cats_v6",systemCats)}
 let customFoods=safe("food_custom_v4",[]).filter(f=>f&&f.n&&f.cat);
 let customCats=safe("food_custom_cats_v4",["我喜欢的","家常菜","聚餐","甜品饮品"]).filter(x=>typeof x==="string"&&x.trim());
 if(!customCats.length)customCats=["我喜欢的"];
 let favorites=safe("food_fav_v5",safe("food_fav_v4",[])).filter(f=>f&&f.n);
 let history=safe("food_hist_v5",safe("food_hist_v4",[])).filter(f=>f&&f.n);
-let source="system",category="全部",current=null,recordMode="fav",mood="all";
+let source="system",category="全部",current=null,recordMode="fav";
 const catIcon={主食:"🍚",正餐:"🍱",小吃:"🍢",甜品:"🍰",奶茶:"🧋",饮品:"🥤",烧烤:"🔥",火锅:"🍲",海鲜:"🦐",早餐:"🥟",夜宵:"🌙",家常菜:"🥘",我喜欢的:"❤️",聚餐:"🍽️",甜品饮品:"🍰"};
 
 function activeCats(){return source==="system"?systemCats:customCats}
 function activeFoods(){return source==="system"?systemFoods:customFoods}
-function list(){
-  let a=category==="全部"?activeFoods():activeFoods().filter(f=>f.cat===category);
-  if(mood==="spicy")a=a.filter(f=>/辣|麻|酸菜鱼|火锅|冒菜|麻辣|串串|小龙虾|臭豆腐/.test(f.n));
-  if(mood==="meat")a=a.filter(f=>/鸡|鸭|牛|羊|猪|肉|排骨|虾|蟹|鱼|海鲜|龙虾|生蚝/.test(f.n)||/正餐|烧烤|火锅|海鲜/.test(f.cat));
-  if(mood==="sweet")a=a.filter(f=>/甜品|奶茶|蛋糕|奶绿|拿铁|杨枝甘露|芋圆|泡芙|蛋挞|水果|饮品/.test(f.n)||/甜品|奶茶|饮品/.test(f.cat));
-  if(mood==="drink")a=a.filter(f=>/奶茶|奶绿|拿铁|茶|汁|饮|饮品/.test(f.n)||/奶茶|饮品/.test(f.cat));
-  return a;
-}
+function list(){return category==="全部"?activeFoods():activeFoods().filter(f=>f.cat===category)}
 function score(f){let h=0;for(const c of f.n)h+=c.charCodeAt(0);return{r:(4.3+(h%7)/10).toFixed(1),t:(4.2+(h%8)/10).toFixed(1)}}
 function placeholder(f){return "<div class='placeholder'>"+esc(f.e||"🍽️")+"<br>"+esc(f.n)+"</div>"}
 
 // Wikimedia Commons 图片数据库：按菜名检索，优先使用用户上传图片；结果会缓存到本机。
-const imgCache=safe("food_image_cache_v2",safe("food_image_cache_v1",{}));
+const imgCache=safe("food_image_cache_v1",{});
 const queryMap={
 "螺蛳粉":"Luosifen","兰州牛肉面":"Lanzhou beef noodles","重庆小面":"Chongqing noodles","热干面":"hot dry noodles Wuhan","炸酱面":"zhajiangmian","担担面":"dandan noodles",
 "蛋炒饭":"egg fried rice","扬州炒饭":"Yangzhou fried rice","卤肉饭":"lu rou fan","煲仔饭":"claypot rice",
@@ -259,10 +250,10 @@ async function fetchRealFoodImage(f,node){
   }catch(e){}
 }
 async function hydrate(){
-  const nodes=document.querySelectorAll("#draw [data-food-id],#resultPhoto [data-food-id],.details .item:nth-child(-n+12) [data-food-id],#records .row:nth-child(-n+8) [data-food-id]");
+  const nodes=document.querySelectorAll("[data-food-id]");
   for(const node of nodes){
     const f=systemFoods.find(x=>x.id===node.dataset.foodId)||customFoods.find(x=>x.id===node.dataset.foodId);
-    if(f&&!f.img)fetchRealFoodImage(f,node);
+    if(f&&!f.img)await fetchRealFoodImage(f,node);
   }
 }
 
@@ -271,11 +262,12 @@ function render(){
   $("customCount").textContent=customFoods.length;
   $("cats").innerHTML="<button class='pill catbtn "+(category==="全部"?"on":"")+"' data-cat='全部'>全部</button>"+activeCats().map(c=>"<button class='pill catbtn "+(category===c?"on":"")+"' data-cat='"+esc(c)+"'>"+(catIcon[c]||"🍽️")+" "+esc(c)+"</button>").join("");
   $("count").textContent="当前分类 "+list().length+" 道";
-  const visibleFoods=list().slice(0,120);
-  $("details").innerHTML=visibleFoods.length?visibleFoods.map(f=>"<div class='item'><div class='itemTop'>"+photoBox(f,"item")+"<div><div class='itemName'>"+esc(f.n)+"</div><small>"+esc(f.cat)+" · "+esc(f.region||"")+"</small></div></div><div class='itemActions'><button class='tiny' type='button' onclick='editFood("+JSON.stringify(f.id)+")'>改名</button><button class='tiny danger' type='button' onclick='deleteFood("+JSON.stringify(f.id)+")'>删除</button><label class='tiny'>换图<input type='file' accept='image/*' style='display:none' onchange='uploadFoodImage("+JSON.stringify(f.id)+",this)'></label></div></div>").join(""):"<div class='empty' style='grid-column:1/-1'>当前条件下没有菜品</div>";
+  // 菜单区域只展示分类；菜品图片只在抽取动画和最终结果中出现，避免页面铺满。
+  $("details").innerHTML="";
   document.querySelectorAll(".catbtn").forEach(b=>b.onclick=()=>{category=b.dataset.cat;render()});
   $("foodCat").innerHTML=activeCats().map(c=>"<option>"+esc(c)+"</option>").join("");
   $("catManager").innerHTML=activeCats().map((c,i)=>"<div class='catRow'><span>"+(catIcon[c]||"🍽️")+" "+esc(c)+" · "+activeFoods().filter(f=>f.cat===c).length+"道</span><button onclick='renameCat("+i+")' type='button'>改名</button><button onclick='deleteCat("+i+")' type='button'>删除</button></div>").join("");
+  hydrate();
   renderRecords();
 }
 
@@ -285,7 +277,7 @@ window.renameCat=function(i){const cats=activeCats(),old=cats[i],n=prompt("把�
 window.deleteCat=function(i){const cats=activeCats();if(cats.length<=1)return alert("至少保留一个分类");const old=cats[i],target=cats[i===0?1:0];if(!confirm("删除“"+old+"”？该分类菜品会移到“"+target+"”。"))return;activeFoods().forEach(f=>{if(f.cat===old)f.cat=target});cats.splice(i,1);saveCats();saveActive();category="全部";render()};
 function editFood(id){const f=activeFoods().find(x=>x.id===id);if(!f)return;const n=prompt("修改菜品名称：",f.n);if(!n||!n.trim())return;f.n=n.trim();saveActive();render()}
 function deleteFood(id){const arr=activeFoods(),f=arr.find(x=>x.id===id);if(!f)return;if(confirm("确定删除“"+f.n+"”？")){if(source==="system")systemFoods=systemFoods.filter(x=>x.id!==id);else customFoods=customFoods.filter(x=>x.id!==id);saveActive();render()}}
-function uploadFoodImage(id,input){const file=input.files?.[0];if(!file)return;const f=activeFoods().find(x=>x.id===id);if(!f)return;const rd=new FileReader();rd.onload=()=>{f.img=rd.result;delete imgCache[f.id+"|"+f.n];delete imgCache[f.n];saveActive();render()};rd.readAsDataURL(file)}
+function uploadFoodImage(id,input){const file=input.files?.[0];if(!file)return;const f=activeFoods().find(x=>x.id===id);if(!f)return;const rd=new FileReader();rd.onload=()=>{f.img=rd.result;delete imgCache[f.n];saveActive();render()};rd.readAsDataURL(file)}
 function addCategory(){const n=$("newCat").value.trim();if(!n)return;if(activeCats().includes(n))return alert("分类已经存在");activeCats().push(n);$("newCat").value="";saveCats();render()}
 function addFood(){const n=$("foodName").value.trim(),c=$("foodCat").value;if(!n)return alert("请输入菜品名称");const file=$("foodFile").files[0];const f={id:(source==="system"?"s":"c")+Date.now(),n,cat:c,e:"🍽️",region:source==="system"?"自定义系统菜品":"我的菜单"};const done=()=>{if(source==="system")systemFoods.push(f);else customFoods.push(f);saveActive();$("foodName").value="";$("foodFile").value="";render()};if(file){const rd=new FileReader();rd.onload=()=>{f.img=rd.result;done()};rd.readAsDataURL(file)}else done()}
 
@@ -351,23 +343,21 @@ async function showResult(f){
   $("resultCat").textContent=(catIcon[f.cat]||"🍽️")+" "+f.cat;$("resultName").textContent=f.n;
   $("resultDesc").textContent=tastyDesc(f);
   $("recommend").textContent=s.r+"/5";$("taste").textContent=s.t+"/5";$("resultRegion").innerHTML="📍 <b>地点：</b>"+esc(f.region||"我的菜单")+"<br>📖 <b>故事：</b>"+esc(foodStory(f))+"<br>🍴 <b>点评：</b>"+esc(tastyDesc(f));
-  $("aiState").textContent="AI 正在联网分析这道美食…";$("aiState").style.opacity=".65";
   $("resultPhoto").innerHTML=photoBox(f,"result");$("result").classList.add("show");
   celebrate();
-  aiFood(f);
 }
 
 let musicMode="food",userAudio=null,musicAudio=null,musicOn=false,onlineSongs=[];
 const MUSIC_API="https://restless-field-1986.lx230632239.workers.dev/music";
 const moodQueries={warm:"华语 温柔 轻音乐",happy:"华语 欢快 流行",food:"美食 咖啡馆 轻快 华语"};
 function setMusicOn(on){musicOn=on;$("musicBtn").classList.toggle("on",on);$("musicBtn").textContent=on?"♫":"🎵";}
-async function searchMusic(q,autoPlay=false,useAI=false){
+async function searchMusic(q,autoPlay=false){
  const box=$("musicResults");if(!q)return;
  box.innerHTML="<div class='musicHint'>🔎 正在联网找歌…</div>";
- try{const endpoint=(useAI?MUSIC_API.replace("/music","/music-ai"):MUSIC_API);const r=await fetch(endpoint+"?q="+encodeURIComponent(q));const d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||"搜索失败");onlineSongs=d.results||[];if(!onlineSongs.length){box.innerHTML="<div class='musicHint'>没有找到可试听的歌曲，换个歌名或歌手试试。</div>";return}box.innerHTML=onlineSongs.map((s,i)=>"<div class='song'><img src='"+esc(s.artwork)+"' alt=''><div class='songMain'><b>"+esc(s.name)+"</b><small>"+esc(s.artist)+" · "+esc(s.album)+"</small></div><button class='songPlay' data-song='"+i+"' type='button'>▶</button></div>").join("");box.querySelectorAll("[data-song]").forEach(b=>b.onclick=()=>playSong(onlineSongs[Number(b.dataset.song)]));if(autoPlay)playSong(onlineSongs[0]);}catch(e){box.innerHTML="<div class='musicHint'>联网搜索暂时失败；手机本地音乐仍可正常播放。</div>";console.warn("music:",e)}
+ try{const r=await fetch(MUSIC_API+"?q="+encodeURIComponent(q));const d=await r.json();if(!r.ok||!d.ok)throw new Error(d.error||"搜索失败");onlineSongs=d.results||[];if(!onlineSongs.length){box.innerHTML="<div class='musicHint'>没有找到可试听的歌曲，换个歌名或歌手试试。</div>";return}box.innerHTML=onlineSongs.map((s,i)=>"<div class='song'><img src='"+esc(s.artwork)+"' alt=''><div class='songMain'><b>"+esc(s.name)+"</b><small>"+esc(s.artist)+" · "+esc(s.album)+"</small></div><button class='songPlay' data-song='"+i+"' type='button'>▶</button></div>").join("");box.querySelectorAll("[data-song]").forEach(b=>b.onclick=()=>playSong(onlineSongs[Number(b.dataset.song)]));if(autoPlay)playSong(onlineSongs[0]);}catch(e){box.innerHTML="<div class='musicHint'>联网搜索暂时失败；手机本地音乐仍可正常播放。</div>";console.warn("music:",e)}
 }
 function playSong(s){if(!s?.preview)return;if(userAudio){userAudio.pause();userAudio=null}if(!musicAudio)musicAudio=$("musicAudio");musicAudio.src=s.preview;musicAudio.loop=true;musicAudio.volume=.42;musicAudio.play().then(()=>setMusicOn(true)).catch(()=>{});}
-function startMusic(mode=musicMode){musicMode=mode;searchMusic(moodQueries[mode]||moodQueries.food,true,true);}
+function startMusic(mode=musicMode){musicMode=mode;searchMusic(moodQueries[mode]||moodQueries.food,true);}
 function celebrate(){winSound();for(let i=0;i<28;i++){const e=document.createElement("i");e.className="confetti";e.style.left=(10+Math.random()*80)+"vw";e.style.setProperty("--x",(Math.random()*180-90)+"px");e.style.animationDelay=(Math.random()*.3)+"s";document.body.appendChild(e);setTimeout(()=>e.remove(),2100)}for(let i=0;i<14;i++){const e=document.createElement("i");e.className="fire";e.style.setProperty("--x",(Math.random()*280-140)+"px");e.style.setProperty("--y",(Math.random()*240-120)+"px");document.body.appendChild(e);setTimeout(()=>e.remove(),1000)}}
 
 function draw(){
@@ -384,25 +374,20 @@ function draw(){
 function renderRecords(){
   const arr=recordMode==="fav"?favorites:history;
   $("favTab").classList.toggle("on",recordMode==="fav");$("histTab").classList.toggle("on",recordMode==="hist");
-  $("records").innerHTML=arr.length?arr.slice().reverse().map((f,i)=>"<div class='row'>"+photoBox(f,"row")+"<div class='rowMain'><b>"+esc(f.n)+"</b><small>"+esc(f.cat)+" · "+esc(f.region||"我的菜单")+"</small></div><button data-remove-id='"+esc(f.id||f.n)+"'>删除</button></div>").join(""):"<div class='empty'>这里还没有内容</div>";
-  document.querySelectorAll("[data-remove-id]").forEach(b=>b.onclick=()=>removeRecord(b.dataset.removeId));
+  $("records").innerHTML=arr.length?arr.slice().reverse().map((f,i)=>"<div class='row'>"+photoBox(f,"row")+"<div class='rowMain'><b>"+esc(f.n)+"</b><small>"+esc(f.cat)+" · "+esc(f.region||"我的菜单")+"</small></div><button data-remove='"+esc(f.n)+"'>删除</button></div>").join(""):"<div class='empty'>这里还没有内容</div>";
+  document.querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>removeRecord(b.dataset.remove));
   hydrate();
 }
-function removeRecord(id){if(recordMode==="fav"){favorites=favorites.filter(f=>(f.id||f.n)!==id);save("food_fav_v5",favorites)}else{const idx=history.findIndex(f=>(f.id||f.n)===id);if(idx>=0)history.splice(idx,1);save("food_hist_v5",history)}renderRecords()}
+function removeRecord(name){if(recordMode==="fav"){favorites=favorites.filter(f=>f.n!==name);save("food_fav_v5",favorites)}else{const idx=history.findIndex(f=>f.n===name);if(idx>=0)history.splice(idx,1);save("food_hist_v5",history)}renderRecords()}
 function clearRecords(){if(!confirm("确定清空当前列表？"))return;if(recordMode==="fav"){favorites=[];save("food_fav_v5",favorites)}else{history=[];save("food_hist_v5",history)}renderRecords()}
 
-async function aiDecide(){const box=$("aiAnswer"),btn=$("aiDecideBtn"),input=$("aiRequest"),a=list();if(!a.length)return alert("当前分类没有可供AI选择的菜品");btn.disabled=true;btn.textContent="分析中…";box.classList.add("show");box.innerHTML="✨ AI 正在根据预算、人数、口味和你的要求筛选…";try{const res=await fetch(AI_API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode:"decide",candidates:a,budget:$("budget").value,people:$("people").value,tasteFilter:$("tasteFilter").value,requestText:input.value.trim()})});const d=await res.json();if(!res.ok||!d.ok)throw new Error(d.error||"AI请求失败");const f=a.find(x=>x.n===d.winner)||a[0];box.innerHTML="<div class='aiWinner'>🍽️ "+esc(f.n)+"</div><div>"+esc(d.reason)+"</div><div class='aiAlt'>备选："+esc((d.alternatives||[]).join("、")||"暂无")+"</div><div class='aiTip'>💡 "+esc(d.orderTip)+"</div>"+(Array.isArray(d.sources)&&d.sources.length?"<div class='aiTip'>🌐 来源："+d.sources.map(s=>"<a href='"+esc(s.url)+"' target='_blank' rel='noopener noreferrer'>"+esc(s.title||"来源")+"</a>").join(" · ")+"</div>":"");showResult(f);$("result").scrollIntoView({behavior:"smooth",block:"start"});}catch(e){box.innerHTML="⚠️ AI暂时没能完成判断，请稍后再试；随机抽取功能仍可正常使用。";console.warn(e)}finally{btn.disabled=false;btn.textContent="AI 决定"}}
-document.querySelectorAll(".mood").forEach(b=>b.onclick=()=>{
-  document.querySelectorAll(".mood").forEach(x=>x.classList.remove("on"));b.classList.add("on");
-  const t=b.textContent||"";
-  mood=/辣/.test(t)?"spicy":/肉/.test(t)?"meat":/甜/.test(t)?"sweet":/喝/.test(t)?"drink":"all";
-  category="全部";render();
-});
+async function aiDecide(){const box=$("aiAnswer"),btn=$("aiDecideBtn"),input=$("aiRequest"),a=list();if(!a.length)return alert("当前分类没有可供AI选择的菜品");btn.disabled=true;btn.textContent="分析中…";box.classList.add("show");box.innerHTML="✨ AI 正在根据预算、人数、口味和你的要求筛选…";try{const res=await fetch(AI_API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode:"decide",candidates:a,budget:$("budget").value,people:$("people").value,tasteFilter:$("tasteFilter").value,requestText:input.value.trim()})});const d=await res.json();if(!res.ok||!d.ok)throw new Error(d.error||"AI请求失败");const f=a.find(x=>x.n===d.winner)||a[0];box.innerHTML="<div class='aiWinner'>🍽️ "+esc(f.n)+"</div><div>"+esc(d.reason)+"</div><div class='aiAlt'>备选："+esc((d.alternatives||[]).join("、")||"暂无")+"</div><div class='aiTip'>💡 "+esc(d.orderTip)+"</div>";showResult(f);$("result").scrollIntoView({behavior:"smooth",block:"start"});}catch(e){box.innerHTML="AI暂时没能完成判断，你也可以直接点击“开始抽美食”。";console.warn(e)}finally{btn.disabled=false;btn.textContent="AI 决定"}}
+document.querySelectorAll(".mood").forEach(b=>b.onclick=()=>{document.querySelectorAll(".mood").forEach(x=>x.classList.remove("on"));b.classList.add("on")});
 document.querySelectorAll(".source").forEach(b=>b.onclick=()=>{source=b.dataset.source;category="全部";render()});
 $("managerToggle").onclick=()=>{$("managerBox").classList.toggle("show")};
 $("menuToggle").onclick=()=>{const m=$("menuBox"),open=!m.classList.contains("collapsed");m.classList.toggle("collapsed");$("menuState").textContent=open?"展开":"收起";$("menuToggle").setAttribute("aria-expanded",String(!open));};
 $("start").onclick=draw;$("again").onclick=draw;$("aiDecideBtn").onclick=aiDecide;$("aiRequest").addEventListener("keydown",e=>{if(e.key==="Enter")aiDecide()});$("addFood").onclick=addFood;$("addCat").onclick=addCategory;
-$("like").onclick=()=>{if(!current)return;if(!favorites.some(x=>(x.id||x.n)===(current.id||current.n))){favorites.push({...current});save("food_fav_v5",favorites)}$("like").textContent="💖 已收藏";renderRecords()};
+$("like").onclick=()=>{if(!current)return;if(!favorites.some(x=>x.n===current.n)){favorites.push({...current});save("food_fav_v5",favorites)}$("like").textContent="💖 已收藏";renderRecords()};
 $("favTab").onclick=()=>{recordMode="fav";renderRecords()};$("histTab").onclick=()=>{recordMode="hist";renderRecords()};$("clearRecords").onclick=clearRecords;
 $("share").onclick=async()=>{const text=current?"今晚吃： "+current.n+" 🍽️":"吃点啥？";try{if(navigator.share)await navigator.share({title:"吃点啥？",text});else{await navigator.clipboard.writeText(text);alert("已复制结果，可以发给朋友")} }catch(e){}};
 $("musicBtn").onclick=()=>$("musicPanel").classList.toggle("show");
